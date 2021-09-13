@@ -21,3 +21,9 @@ Estimates H+ from a dissimilarity matrix (dis) and identity/label vector (lab).
 Utilizes order statistics to algorithmically approximate H+ by sampling
 a percentage (p) of within- and between-cluster distances.
 }
+\examples{
+a <- sapply(1:100, function(i) rnorm(n=50,mean=1.0,sd=1))
+l <- c(rep(0,50),rep(1,50))
+d <- dist(t(a))
+h <- hp_estm(dis=d,lab=l)
+}
