@@ -23,7 +23,7 @@
 #' x <- cbind(a,b)
 #' d <- dist(t(x))
 #' l <- c(rep(0,500),rep(1,500))
-#' h <- hpe(D=d,l=b,p=101,alg=1)
+#' h <- hpe(D=d,L=l,p=101,alg=1)
 hpe <- function(A,B,D,L,p=101,alg=1){
   abflg<- missing(A) & missing(B)
   dlflg <- missing(D) & missing(L)
