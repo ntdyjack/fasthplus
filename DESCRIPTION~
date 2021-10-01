@@ -7,7 +7,7 @@ Authors@R:
            role = c("aut", "cre"),
            email = "ntdyjack@gmail.com",
            comment = c(ORCID = "0000-0001-6944-6252"))
-Description: Fast diconcordance estimation using percentiles.
+Description: What the package does (one paragraph).
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
 Encoding: UTF-8
