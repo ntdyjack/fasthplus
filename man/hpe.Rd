@@ -38,5 +38,5 @@ b <- sapply(1:500, function(i) rnorm(n=50,mean=0))
 x <- cbind(a,b)
 d <- dist(t(x))
 l <- c(rep(0,500),rep(1,500))
-h <- hpe(D=d,l=b,p=101,alg=1)
+h <- hpe(D=d,L=l,p=101,alg=1)
 }
