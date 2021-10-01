@@ -4,18 +4,20 @@
 \alias{hpe}
 \title{H+ Estimate}
 \usage{
-hpe(A, B, D, L, p = 101)
+hpe(A, B, D, L, p = 101, alg = 1)
 }
 \arguments{
 \item{A}{(numeric vector)}
 
 \item{B}{(numeric vector)}
 
-\item{D}{(dist or symmetric matrix, nxn)}
+\item{D}{(dist, nxn)}
 
 \item{L}{(numeric or character vector, nx1)}
 
 \item{p}{(integer)}
+
+\item{alg}{(integer), Algorithm 1 or 2}
 }
 \value{
 Estimated H+ (numeric)
@@ -27,11 +29,14 @@ Approximation is calculated using p+1 percentiles,
 with an accuracy bound of 1/p.
 }
 \examples{
-a <- sapply(1:100, function(i) rnorm(n=50,mean=1.0,sd=1))
-b <- sapply(1:100, function(i) rnorm(n=50,mean=-1.0,sd=1))
-h <- hpe(a=a,b=b,p=101)
-a <- cbind(a,b)
-d <- dist(t(a))
-l <- c(rep(0,100),rep(1,100))
-h <- hpe(D=d,l=b)
+a <- rnorm(n=500,mean=0)
+b <- rnorm(n=500,mean=1
+h <- hpe(a=a,b=b,p=101,alg=1)
+
+a <- sapply(1:500, function(i) rnorm(n=50,mean=0))
+b <- sapply(1:500, function(i) rnorm(n=50,mean=0))
+x <- cbind(a,b)
+d <- dist(t(x))
+l <- c(rep(0,500),rep(1,500))
+h <- hpe(D=d,l=b,p=101,alg=1)
 }
