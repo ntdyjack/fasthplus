@@ -2,36 +2,37 @@
 % Please edit documentation in R/hpe.R
 \name{hpe}
 \alias{hpe}
-\title{H+ Estimate}
+\title{H+ discordance metric}
 \usage{
 hpe(A, B, D, L, p = 101, alg = 1)
 }
 \arguments{
-\item{A}{(numeric vector)}
+\item{A}{numeric vector containing a set of length n}
 
-\item{B}{(numeric vector)}
+\item{B}{numeric vector containing a set of length n}
 
-\item{D}{(dist, nxn)}
+\item{D}{distance matrix of dimension nxn}
 
-\item{L}{(numeric or character vector, nx1)}
+\item{L}{numeric or character vector of length n}
 
-\item{p}{(integer)}
+\item{p}{integer representing the number of percentiles}
 
-\item{alg}{(integer), Algorithm 1 or 2}
+\item{alg}{integer (1 or 2) representing the choice of algorithm used to estimate H+ (Algorithm 1 or 2)}
 }
 \value{
-Estimated H+ (numeric)
+A numeric returning the estimated value of H+.
 }
 \description{
-Estimates H+ for two sets (vectors) A and B, or
-a dissimilarity matrix D and a label vector L.
+Estimates the H+ discordance metric
+for either (1) two sets (vectors) A and B, or
+(2) a dissimilarity matrix D and a label vector L.
 Approximation is calculated using p+1 percentiles,
 with an accuracy bound of 1/p.
 }
 \examples{
 a <- rnorm(n=500,mean=0)
-b <- rnorm(n=500,mean=1
-h <- hpe(a=a,b=b,p=101,alg=1)
+b <- rnorm(n=500,mean=1)
+h <- hpe(A=a,B=b,p=101,alg=1)
 
 a <- sapply(1:500, function(i) rnorm(n=50,mean=0))
 b <- sapply(1:500, function(i) rnorm(n=50,mean=0))
@@ -39,4 +40,5 @@ x <- cbind(a,b)
 d <- dist(t(x))
 l <- c(rep(0,500),rep(1,500))
 h <- hpe(D=d,L=l,p=101,alg=1)
+
 }
