@@ -1,0 +1,28 @@
+@article{williams1971comparison,
+  title={On the comparison of two classifications of the same set of elements},
+  author={Williams, William T and Clifford, Harold T},
+  journal={Taxon},
+  volume={20},
+  number={4},
+  pages={519--522},
+  year={1971},
+  publisher={Wiley Online Library}
+}
+
+@article{rohlf1974methods,
+  title={Methods of comparing classifications},
+  author={Rohlf, F James},
+  journal={Annual Review of Ecology and Systematics},
+  volume={5},
+  number={1},
+  pages={101--113},
+  year={1974},
+  publisher={Annual Reviews 4139 El Camino Way, PO Box 10139, Palo Alto, CA 94303-0139, USA}
+}
+
+@misc{desgraupes2018package,
+  title={Package ‘clusterCrit’},
+  author={Desgraupes, Bernard and Desgraupes, Maintainer Bernard},
+  year={2018},
+  publisher={R-Proj}
+}
