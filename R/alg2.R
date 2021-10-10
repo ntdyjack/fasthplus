@@ -18,7 +18,6 @@ alg2 <- function(qA,qB,p){
       j <- j + 1
     }else{ #increase qA
       inty[i] <- (j-1)
-      gt[i,j] <- T
       i <- i + 1
     }
   }
