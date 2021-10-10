@@ -10,6 +10,6 @@
 #' @return Estimated H+, un-standardized (numeric vector)
 #' @keywords internal
 alg1 <- function(qA,qB,p){
-  sapply(qA, function(x) sum(x>qB))
+  inty <- sapply(qA, function(x) sum(x>qB))
   return(inty)
 }
