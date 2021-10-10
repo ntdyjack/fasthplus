@@ -7,8 +7,8 @@
 #'
 #' @param qA (vector, px1)
 #' @param qB (vector, px1)
-#' @return Estimated H+, un-standardized (numeric vector)
 #' @keywords internal
+#' @return Estimated H+, un-standardized (numeric vector)
 alg2 <- function(qA,qB,p){
   i <- j <- 1
   inty <- rep(0,p)

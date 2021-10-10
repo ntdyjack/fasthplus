@@ -20,7 +20,11 @@ hpe(A, B, D, L, p = 101, alg = 1)
 \item{alg}{integer (1 or 2) representing the choice of algorithm used to estimate H+ (Algorithm 1 or 2)}
 }
 \value{
-A numeric returning the estimated value of H+.
+list, h is the estimated H+ value.
+
+gamma1 and gamma2 are plausible ranges for what \% of A (or Dw)
+
+are strictly greater than B (or Db)
 }
 \description{
 Estimates the H+ discordance metric

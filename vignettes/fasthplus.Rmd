@@ -1,14 +1,17 @@
 ---
-title: "fasthplus"
+title: "fasthplus vignette"
 author: "Nathan Dyjack and Stephanie Hicks"
 date: "Last modified: October 6, 2021; Compiled: `r format(Sys.time(), '%B %d, %Y')`"
 bibliography: biblio.bib
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{fasthplus}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
+
+<!--
+%\VignetteEngine{knitr::rmarkdown}
+%\VignetteIndexEntry{fasthplus vignette}
+-->
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
@@ -40,17 +43,14 @@ For further exploration of disconcordance, these estimators ($G_{+}$ and $H_{+}$
 
 
 Our main contribution in this package is the implementation of a percentile-based $H_{+}$ estimator that dramatically reduces the number of comparisons required to accurately estimate disconcordance.
+In comparison to similar cluster-fitness packages (`clusterCrit`) which induce Euclidean distance from the observations, `fasthplus` is designed to handle an arbitrary dissimilarity matrix.
 In `RKIV PREPRINT HERE`, we derive a numerical bound for the accuracy of this estimator as a function of $p$, the number of percentiles taken from the two sets of interest.
 The user can specify $p$, and `hpe` guarantees accuracy within $\pm \frac{1}{p-1}$ of the true $H_{+}$.
 We provide two equivalent algorithms for this estimation process, with the further benefit that our algorithms yields a range of reasonable values for $\gamma_{A},\gamma_{B}$.
 
+
 ##Formulation examples 
 We provide two simulated examples of `hpe` usage
-
-```{r}
-library(fasthplus)
-```
-
 
 ###$A,B$ formulation
 This formulation seeks to quantify the answer a simple question: for two sets $A,B$ how often can we expect that $a>b,a\inA,b\inB$?
@@ -101,10 +101,15 @@ legend('topright',legend=c(expression('D'[W]), expression('D'[B])), pch=c(22,22)
 # `hpe`
 The main function `hpe()` returns a numeric value for $H_{+}$ given $A,B$ or $D,L$.
 Note that either $A,B$ or $D,L$ maybe be provided as arguments.
+For comparison, we also demonstrate calculation of $G_{+}$ using the `clusterCrit` package.
+Note that `clusterCrit` takes the data `dat` directly as an argument, while `fasthplus` takes an arbitrary dissimilarity matrix induced from the same data.
 
 ```{r}
+library(fasthplus)
+library(clusterCrit)
 hpe(A=a,B=b) #A,B formulation
 hpe(D=d,L=l) #D,L formulation
+intCriteria(traj=t(dat),part=as.integer(l),crit='G_plus')
 ```
 
 ## Arguments
@@ -130,9 +135,46 @@ We hope that this section provides some intuition for the true value of $H_{+}$ 
 ### Two highly similar clusters
 We simulate $n=1000$ observations from the same distribution.
 Each observation is randomly (with probability $0.5$) membership in one of two clusters.
-In this way, we explore how $H_{+}$ behaves in the case where a cluster set $L$ has not provided any more information than we might attain by chance.
+In this way, we explore how $H_{+}$ ang $G_{+}$ behave in the case where a cluster set $L$ has not provided any more information than we might attain by chance.
+
+```{r,fig.width=6,fig.height=4}
+n <- 1000
+m <- 100
+dat <- sapply(1:n, function(i) rnorm(n=m,mean=0,sd=1))
+d <- dist(t(dat))
+pc <- prcomp(t(dat))$x[,1:2]
+l <- round(runif(n=n))
+cols <- ifelse(l==1,'#0000ff64','#ff000064')
+plot(x=pc[,1],y=pc[,2],pch=16,col=cols,cex=0.7,xaxs = "i",yaxs = "i",xlab='PC1',ylab='PC2',xaxt='n',yaxt='n')
+legend('topleft',legend=c(expression('Cl'[1]), expression('Cl'[2])), pch=c(21,21),
+  col= c('blue','red'),cex=1.5, pt.bg=c('#0000ff64','#ff000064'),bty='n')
+
+
+hpe(D=d,L=l) #D,L formulation
+intCriteria(traj=t(dat),part=as.integer(l),crit='G_plus')
+```
+
 
 ### Two distinct clusters
 We simulate $n=1000$ observations from the two distinct distributions.
 Each observation is assigned a cluster label corresponding to the distribution from which it was drawn.
-In this way, we explore how $H_{+}$ behaves in the case where a cluster set $L$ gives more information that we might attain by chance
+In this way, we explore how $H_{+}$ and $G_{+}$ behave in the case where a cluster set $L$ gives more information that we might attain by chance
+
+```{r,fig.width=6,fig.height=4}
+n <- 500
+cl1 <- sapply(1:n, function(i) rnorm(n=m,mean=0.5,sd=1))
+cl2 <- sapply(1:n, function(i) rnorm(n=m,mean=-0.5,sd=1))
+dat <- cbind(cl1,cl2)
+d <- dist(t(dat))
+l <- c(rep(0,n),rep(1,n))
+pc <- prcomp(t(dat))$x[,1:2]
+cols <- ifelse(l==1,'#0000ff64','#ff000064')
+plot(x=pc[,1],y=pc[,2],pch=16,col=cols,cex=0.7,xaxs = "i",yaxs = "i",xlab='PC1',ylab='PC2',xaxt='n',yaxt='n')
+legend('top',legend=c(expression('Cl'[1]), expression('Cl'[2])), pch=c(21,21),
+  col= c('blue','red'),cex=1.5, pt.bg=c('#0000ff64','#ff000064'),bty='n')
+
+hpe(D=d,L=l) #D,L formulation
+intCriteria(traj=t(dat),part=as.integer(l),crit='G_plus')
+```
+
+#References

@@ -12,7 +12,7 @@ alg2(qA, qB, p)
 \item{qB}{(vector, px1)}
 }
 \value{
-Estimated H+ (numeric)
+Estimated H+, un-standardized (numeric vector)
 }
 \description{
 Estimates H+ for two sets (vectors) A and B, or
@@ -20,3 +20,4 @@ a dissimilarity matrix D and a label vector L.
 Approximation is calculated using p+1 percentiles,
 with an accuracy bound of 1/p.
 }
+\keyword{internal}

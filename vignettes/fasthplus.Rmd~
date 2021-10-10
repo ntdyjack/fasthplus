@@ -1,14 +1,17 @@
 ---
-title: "fasthplus"
+title: "fasthplus vignette"
 author: "Nathan Dyjack and Stephanie Hicks"
 date: "Last modified: October 6, 2021; Compiled: `r format(Sys.time(), '%B %d, %Y')`"
 bibliography: biblio.bib
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{fasthplus}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
+
+<!--
+%\VignetteEngine{knitr::rmarkdown}
+%\VignetteIndexEntry{fasthplus vignette}
+-->
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
@@ -31,7 +34,7 @@ if(!requireNamespace('devtools')){
 # Introduction
 
 This vignette serves as an introductory example on how to utilize the `fasthplus` package.
-We introduce $H_{+}$, a simple modification of $G_{+}$ as first introduced by [@williams1971comparison], re-written in [rohlf1974methods], and implemented in `R` in the `clusterCrit` pacakge  [desgraupes2018package].
+We introduce $H_{+}$, a simple modification of $G_{+}$ as first introduced by [@williams1971comparison], re-written in [@rohlf1974methods], and implemented in `R` in the `clusterCrit` pacakge  [@desgraupes2018package].
 Both $G_{+}$ and $H_{+}$ are quantifications of disconcordance, which can be thought of as the fitness of a contingency table generated using two label sets for the same observations.
 The primary user function is `hpe` (H Plus Estimator), a quick means to estimate $H_{+}$ using two arbitrary vectors $A,B$, or a dissimilarity matrix $D$ and set of labels $L$.
 $G_{+}$ and $H_{+}$ are estimators of the same theoretical disconcordance parameter -- $H_{+}$ more explicitly estimates this parameter.
@@ -39,10 +42,12 @@ $H_{+}$ can be thought of as the product of two parameters $\gamma_{A},\gamma_{B
 For further exploration of disconcordance, these estimators ($G_{+}$ and $H_{+}$), as well as their theoretical properties, please see `RKIV PREPRINT HERE`.
 
 
-Our main contribution in this package is the implementaiton of a percentile-based $H_{+}$ estimator that dramatically reduces the number of comparisons required to accurately estimate disconcordance.
+Our main contribution in this package is the implementation of a percentile-based $H_{+}$ estimator that dramatically reduces the number of comparisons required to accurately estimate disconcordance.
+In comparison to similar cluster-fitness packages (`clusterCrit`) which induce Euclidean distance from the observations, `fasthplus` is designed to handle an arbitrary dissimilarity matrix.
 In `RKIV PREPRINT HERE`, we derive a numerical bound for the accuracy of this estimator as a function of $p$, the number of percentiles taken from the two sets of interest.
-The user can specify $p$, and `hpe` gaurantees accuracy within $\pm \frac{1}{p-1}$ of the true $H_{+}$.
-We provide two equivalent algorithims for this estimation process, with the further benefit that our algorithms yields a range of reasonable values for $\gamma_{A},\gamma_{B}$.
+The user can specify $p$, and `hpe` guarantees accuracy within $\pm \frac{1}{p-1}$ of the true $H_{+}$.
+We provide two equivalent algorithms for this estimation process, with the further benefit that our algorithms yields a range of reasonable values for $\gamma_{A},\gamma_{B}$.
+
 
 ##Formulation examples 
 We provide two simulated examples of `hpe` usage
@@ -96,10 +101,15 @@ legend('topright',legend=c(expression('D'[W]), expression('D'[B])), pch=c(22,22)
 # `hpe`
 The main function `hpe()` returns a numeric value for $H_{+}$ given $A,B$ or $D,L$.
 Note that either $A,B$ or $D,L$ maybe be provided as arguments.
+For comparison, we also demonstrate calculation of $G_{+}$ using the `clusterCrit` package.
+Note that `clusterCrit` takes the data `dat` directly as an argument, while `fasthplus` takes an arbitrary dissimilarity matrix induced from the same data.
 
 ```{r}
+library(fasthplus)
+library(clusterCrit)
 hpe(A=a,B=b) #A,B formulation
 hpe(D=d,L=l) #D,L formulation
+intCriteria(traj=t(dat),part=as.integer(l),crit='G_plus')
 ```
 
 ## Arguments
@@ -107,27 +117,64 @@ The user may also provide `hpe()` with two additional arguments: `p` and `alg`
 
 ### `p`
 An `integer` value that specifies the number of percentiles to calculate for each set $A,B$.
-`p` is used to specify the desired accuracy of the $H_{+}$ estimate, where the theoretical accuracy is gauranteed within $\pm \frac{1}{p-1}$.
-The defulat value `p=101`, that is, an accuracy of 0.01. 
+`p` is used to specify the desired accuracy of the $H_{+}$ estimate, where the theoretical accuracy is guaranteed within $\pm \frac{1}{p-1}$.
+The default value `p=101`, that is, an accuracy of 0.01. 
 
 ### alg
-An `integer` taking values 1 or 2 that specifies choice of which equivalent $H_{+}$ approximation algorithim.
+An `integer` taking values 1 or 2 that specifies choice of which equivalent $H_{+}$ approximation algorithm.
 For most values of $p$ the algorithms have comprable performance.
 Algorithm 1 (default) is a 'brute-force' estimation that performs best (in `R`) for smaller values of $p$.
-Algorithm 2 is a gridsearch solution for the same value that requires strictly less calculations than Algorithm 2, but is somewhat inefficient in a vector-based language like `R`.
+Algorithm 2 is a grid search solution for the same value that requires strictly less calculations than Algorithm 2, but is somewhat inefficient in a vector-based language like `R`.
 In practice, the algorithms have similar performance for most values of $p$.
-As Algorithim 2 performs strictly less calculations than Algorithm 1, we suggest Algorithm 2 for any $p>101$.
+As Algorithm 2 performs strictly less calculations than Algorithm 1, we suggest Algorithm 2 for any $p>101$.
 
 ## Two more simulated examples
 Here we demonstrate the behaviors of $H_{+}$ and `hpe()` for two additional simulated datasets in the $D,L$ formulation.
 We hope that this section provides some intuition for the true value of $H_{+}$ in these scenarios, and how this value compares to the estimate given by `hpe()`.
 
-### Two highly similar cluters
+### Two highly similar clusters
 We simulate $n=1000$ observations from the same distribution.
 Each observation is randomly (with probability $0.5$) membership in one of two clusters.
-In this way, we explore how $H_{+}$ behaves in the case where a cluster set $L$ has not provided any more information than we might attain by chance.
+In this way, we explore how $H_{+}$ ang $G_{+}$ behave in the case where a cluster set $L$ has not provided any more information than we might attain by chance.
+
+```{r,fig.width=6,fig.height=4}
+n <- 1000
+m <- 100
+dat <- sapply(1:n, function(i) rnorm(n=m,mean=0,sd=1))
+d <- dist(t(dat))
+pc <- prcomp(t(dat))$x[,1:2]
+l <- round(runif(n=n))
+cols <- ifelse(l==1,'#0000ff64','#ff000064')
+plot(x=pc[,1],y=pc[,2],pch=16,col=cols,cex=0.7,xaxs = "i",yaxs = "i",xlab='PC1',ylab='PC2',xaxt='n',yaxt='n')
+legend('topleft',legend=c(expression('Cl'[1]), expression('Cl'[2])), pch=c(21,21),
+  col= c('blue','red'),cex=1.5, pt.bg=c('#0000ff64','#ff000064'),bty='n')
+
+
+hpe(D=d,L=l) #D,L formulation
+intCriteria(traj=t(dat),part=as.integer(l),crit='G_plus')
+```
+
 
 ### Two distinct clusters
 We simulate $n=1000$ observations from the two distinct distributions.
 Each observation is assigned a cluster label corresponding to the distribution from which it was drawn.
-In this way, we explore how $H_{+}$ behaves in the case where a cluster set $L$ gives more information that we might attain by chance
+In this way, we explore how $H_{+}$ and $G_{+}$ behave in the case where a cluster set $L$ gives more information that we might attain by chance
+
+```{r,fig.width=6,fig.height=4}
+n <- 500
+cl1 <- sapply(1:n, function(i) rnorm(n=m,mean=0.5,sd=1))
+cl2 <- sapply(1:n, function(i) rnorm(n=m,mean=-0.5,sd=1))
+dat <- cbind(cl1,cl2)
+d <- dist(t(dat))
+l <- c(rep(0,n),rep(1,n))
+pc <- prcomp(t(dat))$x[,1:2]
+cols <- ifelse(l==1,'#0000ff64','#ff000064')
+plot(x=pc[,1],y=pc[,2],pch=16,col=cols,cex=0.7,xaxs = "i",yaxs = "i",xlab='PC1',ylab='PC2',xaxt='n',yaxt='n')
+legend('top',legend=c(expression('Cl'[1]), expression('Cl'[2])), pch=c(21,21),
+  col= c('blue','red'),cex=1.5, pt.bg=c('#0000ff64','#ff000064'),bty='n')
+
+hpe(D=d,L=l) #D,L formulation
+intCriteria(traj=t(dat),part=as.integer(l),crit='G_plus')
+```
+
+#References
