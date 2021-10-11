@@ -1,9 +1,12 @@
 ---
-title: "fasthplus vignette"
+title: "Metrics of disconcordance with `fasthplus`"
 author: "Nathan Dyjack and Stephanie Hicks"
 date: "Last modified: October 6, 2021; Compiled: `r format(Sys.time(), '%B %d, %Y')`"
 bibliography: biblio.bib
-output: rmarkdown::html_vignette
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
 vignette: >
   %\VignetteEncoding{UTF-8}
 ---
@@ -25,20 +28,31 @@ knitr::opts_chunk$set(
 At present, `fasthplus` is only available for installation via github using the `devtools` package.
 A `CRAN` distribution is in preparation and this section will be updated to reflect its eventual availability.
 
-```{r, eval=F}
+```{r, eval=FALSE}
 if(!requireNamespace('devtools')){
   install.packages('devtools')
 }
 ```
 
+```{r, eval=FALSE}
+devtools::install_github(repo="ntdyjack/fasthplus", ref = "main", build_vignettes = TRUE, subdir = NULL, auth_token = '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')
+```
+
+Once the package is installed, you can load the library
+
+```{r}
+library(fasthplus)
+```
+
+
 # Introduction
 
 This vignette serves as an introductory example on how to utilize the `fasthplus` package.
-We introduce $H_{+}$, a simple modification of $G_{+}$ as first introduced by [@williams1971comparison], re-written in [@rohlf1974methods], and implemented in `R` in the `clusterCrit` pacakge  [@desgraupes2018package].
+We introduce $H_{+}$, a simple modification of $G_{+}$ as first introduced by [@williams1971comparison], re-written in [@rohlf1974methods], and implemented in `R` in the `clusterCrit` package  [@desgraupes2018package].
 Both $G_{+}$ and $H_{+}$ are quantifications of disconcordance, which can be thought of as the fitness of a contingency table generated using two label sets for the same observations.
 The primary user function is `hpe` (H Plus Estimator), a quick means to estimate $H_{+}$ using two arbitrary vectors $A,B$, or a dissimilarity matrix $D$ and set of labels $L$.
 $G_{+}$ and $H_{+}$ are estimators of the same theoretical disconcordance parameter -- $H_{+}$ more explicitly estimates this parameter.
-$H_{+}$ can be thought of as the product of two parameters $\gamma_{A},\gamma_{B}$, which lends itself to a simple interpretation for $H_{+}$: $\gamma_{A}\times100\%$ of $a\inA$ are strictly greater than $\gamma_{B}\times100\%$ of $b\inB$.
+$H_{+}$ can be thought of as the product of two parameters $\gamma_{A},\gamma_{B}$, which lends itself to a simple interpretation for $H_{+}$: $\gamma_{A}\times100\%$ of $a \in A$ are strictly greater than $\gamma_{B}\times100\%$ of $b \in B$.
 For further exploration of disconcordance, these estimators ($G_{+}$ and $H_{+}$), as well as their theoretical properties, please see `RKIV PREPRINT HERE`.
 
 
@@ -49,11 +63,11 @@ The user can specify $p$, and `hpe` guarantees accuracy within $\pm \frac{1}{p-1
 We provide two equivalent algorithms for this estimation process, with the further benefit that our algorithms yields a range of reasonable values for $\gamma_{A},\gamma_{B}$.
 
 
-##Formulation examples 
+## Formulation examples 
 We provide two simulated examples of `hpe` usage
 
-###$A,B$ formulation
-This formulation seeks to quantify the answer a simple question: for two sets $A,B$ how often can we expect that $a>b,a\inA,b\inB$?
+### $A,B$ formulation
+This formulation seeks to quantify the answer a simple question: for two sets $A,B$ how often can we expect that $a>b,a \in A,b \in B$?
 We simulate $A$ and $B$ as $n=10000$ draws from a univariate normal distributions with unit variance and slightly different means ($\mu_{A}=0.5,\mu_{B}=-0.5$). 
 
 ```{r, fig.width=6,fig.height=4}
@@ -68,7 +82,7 @@ legend('topright',legend=c("A","B"), pch=c(22,22),
   col= c('blue','red'),cex=1.5, pt.bg=c('#0000ff64','#ff000064'),bty='n')
 ```
 
-###$D,L$ formulation
+### $D,L$ formulation
 We can apply $A,B$ formulation to a dissimilarity matrix $D$ and set of cluster labels $L$.
 $L$ can be used to generate a binary adjacency matrix that tells us (for every unique pair of obvservaitons) whether two observations belong to the same group.
 This adjacency matrix (more specifically, its upper-triangular elements) can then be used to classify every unique dissimilarity $d\in D$ as corresponding to a pair within the same cluster or not.
@@ -177,4 +191,4 @@ hpe(D=d,L=l) #D,L formulation
 intCriteria(traj=t(dat),part=as.integer(l),crit='G_plus')
 ```
 
-#References
+# References

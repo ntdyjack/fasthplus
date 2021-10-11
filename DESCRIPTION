@@ -22,5 +22,6 @@ BugReports: https://github.com/ntdyjack/fasthplus/
 URL: https://github.com/ntdyjack/fasthplus/
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown, 
+    clusterCrit
 VignetteBuilder: knitr
