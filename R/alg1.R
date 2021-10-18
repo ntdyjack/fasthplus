@@ -1,4 +1,4 @@
-#' Algorithim 1 for H+ Estimate
+#' Algorithm 1 ("brute_force") for H+ Estimate
 #'
 #' Estimates H+ for two sets (vectors) A and B, or 
 #' a dissimilarity matrix D and a label vector L.

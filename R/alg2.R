@@ -1,4 +1,4 @@
-#' Algorithim 2 for H+ Estimate
+#' Algorithm 2 (grid_search) for H+ Estimate
 #'
 #' Estimates H+ for two sets (vectors) A and B, or 
 #' a dissimilarity matrix D and a label vector L.

@@ -2,7 +2,7 @@
 % Please edit documentation in R/alg1.R
 \name{alg1}
 \alias{alg1}
-\title{Algorithim 1 for H+ Estimate}
+\title{Algorithm 1 ("brute_force") for H+ Estimate}
 \usage{
 alg1(qA, qB, p)
 }

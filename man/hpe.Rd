@@ -4,7 +4,7 @@
 \alias{hpe}
 \title{H+ discordance metric}
 \usage{
-hpe(A, B, D, L, p = 101, alg = 1)
+hpe(A, B, D, L, p = 101, alg = "brute_force")
 }
 \arguments{
 \item{A}{numeric vector containing a set of length n}
@@ -17,7 +17,7 @@ hpe(A, B, D, L, p = 101, alg = 1)
 
 \item{p}{integer representing the number of percentiles}
 
-\item{alg}{integer (1 or 2) representing the choice of algorithm used to estimate H+ (Algorithm 1 or 2)}
+\item{alg}{character string ("brute_force" or "grid_search") representing the choice of algorithm used to estimate H+}
 }
 \value{
 list, h is the estimated H+ value.
@@ -34,15 +34,15 @@ Approximation is calculated using p+1 percentiles,
 with an accuracy bound of 1/p.
 }
 \examples{
-a <- rnorm(n=500,mean=0)
-b <- rnorm(n=500,mean=1)
-h <- hpe(A=a,B=b,p=101,alg=1)
+a <- rnorm(n=500, mean=0)
+b <- rnorm(n=500 ,mean=1)
+h <- hpe(A=a, B=b, p=101, alg="brute_force")
 
-a <- sapply(1:500, function(i) rnorm(n=50,mean=0))
-b <- sapply(1:500, function(i) rnorm(n=50,mean=0))
+a <- sapply(1:500, function(i) rnorm(n=50, mean=0))
+b <- sapply(1:500, function(i) rnorm(n=50, mean=0))
 x <- cbind(a,b)
 d <- dist(t(x))
-l <- c(rep(0,500),rep(1,500))
-h <- hpe(D=d,L=l,p=101,alg=1)
+l <- c(rep(0,500), rep(1,500))
+h <- hpe(D=d, L=l, p=101, alg="brute_force")
 
 }

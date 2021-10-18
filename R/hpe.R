@@ -11,7 +11,7 @@
 #' @param D distance matrix of dimension nxn
 #' @param L numeric or character vector of length n
 #' @param p integer representing the number of percentiles
-#' @param alg integer (1 or 2) representing the choice of algorithm used to estimate H+ (Algorithm 1 or 2)
+#' @param alg character string ("brute_force" or "grid_search") representing the choice of algorithm used to estimate H+
 #' 
 #' @return list, h is the estimated H+ value.
 #' @return gamma1 and gamma2 are plausible ranges for what % of A (or Dw)
@@ -19,22 +19,22 @@
 #' @export
 #' 
 #' @examples
-#' a <- rnorm(n=500,mean=0)
-#' b <- rnorm(n=500,mean=1)
-#' h <- hpe(A=a,B=b,p=101,alg=1)
+#' a <- rnorm(n=500, mean=0)
+#' b <- rnorm(n=500 ,mean=1)
+#' h <- hpe(A=a, B=b, p=101, alg="brute_force")
 #'
-#' a <- sapply(1:500, function(i) rnorm(n=50,mean=0))
-#' b <- sapply(1:500, function(i) rnorm(n=50,mean=0))
+#' a <- sapply(1:500, function(i) rnorm(n=50, mean=0))
+#' b <- sapply(1:500, function(i) rnorm(n=50, mean=0))
 #' x <- cbind(a,b)
 #' d <- dist(t(x))
-#' l <- c(rep(0,500),rep(1,500))
-#' h <- hpe(D=d,L=l,p=101,alg=1)
+#' l <- c(rep(0,500), rep(1,500))
+#' h <- hpe(D=d, L=l, p=101, alg="brute_force")
 #' 
-hpe <- function(A, B, D, L, p = 101, alg = 1) {
+hpe <- function(A, B, D, L, p = 101, alg = "brute_force") {
   abflg <- missing(A) & missing(B)
   dlflg <- missing(D) & missing(L)
   if (abflg & dlflg) {
-    stop("please provide either A B or D L")
+    stop("please provide either (A and B) or (D and L)")
   } else if (!abflg) {
     nmflg <- (!is.numeric(A) & !is.numeric(A))
     if (nmflg) {
@@ -76,13 +76,13 @@ hpe <- function(A, B, D, L, p = 101, alg = 1) {
   qA <- quantile(A, probs = ps)
   qB <- quantile(B, probs = ps)
 
-  #call hp alg1 or 2
-  if (alg == 1) {
+  #call hp alg ("brute_force" or "grid_search")
+  if (alg == "brute_force") {
     hev <- alg1(qA, qB, p)
-  } else if (alg == 2) {
+  } else if (alg == "grid_search") {
     hev <- alg2(qA, qB, p)
   } else{
-    stop("please specify a valid algorithm (alg=1 or 2)")
+    stop("please specify a valid algorithm ('brute_force' or 'grid_search')")
   }
   he <- sum(hev)/p^2 #He
 

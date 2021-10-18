@@ -2,7 +2,7 @@
 % Please edit documentation in R/alg2.R
 \name{alg2}
 \alias{alg2}
-\title{Algorithim 2 for H+ Estimate}
+\title{Algorithm 2 (grid_search) for H+ Estimate}
 \usage{
 alg2(qA, qB, p)
 }
