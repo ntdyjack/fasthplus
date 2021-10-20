@@ -1,5 +1,5 @@
 Package: fasthplus
-Title: Fast diconcordance estimation using percentiles.
+Title: Fast diconcordance estimation using percentiles
 Version: 0.0.0.9000
 Authors@R: c(
     person(given = "Nathan",
@@ -20,6 +20,8 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
 BugReports: https://github.com/ntdyjack/fasthplus/
 URL: https://github.com/ntdyjack/fasthplus/
+Imports: 
+    stats
 Suggests: 
     knitr,
     rmarkdown, 

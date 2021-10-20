@@ -19,6 +19,8 @@
 #' @return are strictly greater than B (or Db)
 #' @export
 #' 
+#' @importFrom stats median quantile
+#' 
 #' @examples
 #' a <- rnorm(n=500, mean=0)
 #' b <- rnorm(n=500 ,mean=1)
