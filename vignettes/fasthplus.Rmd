@@ -38,8 +38,8 @@ if(!requireNamespace('devtools')){
 devtools::install_github(repo="ntdyjack/fasthplus", 
                          ref = "main", 
                          build_vignettes = TRUE, 
-                         subdir = NULL, 
-                         auth_token = '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')
+                         subdir = NULL                         
+)
 ```
 
 Once the package is installed, you can load the library
