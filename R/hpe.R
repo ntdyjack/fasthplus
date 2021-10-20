@@ -12,6 +12,7 @@
 #' @param L numeric or character vector of length n
 #' @param p integer representing the number of percentiles
 #' @param alg character string ("brute_force" or "grid_search") representing the choice of algorithm used to estimate H+
+#' @param alphas boolean indicator to return alpha values that parameterize balance of within/between cluster distances
 #' 
 #' @return list, h is the estimated H+ value.
 #' @return gamma1 and gamma2 are plausible ranges for what % of A (or Dw)
@@ -30,7 +31,7 @@
 #' l <- c(rep(0,500), rep(1,500))
 #' h <- hpe(D=d, L=l, p=101, alg="brute_force")
 #' 
-hpe <- function(A, B, D, L, p = 101, alg = "brute_force") {
+hpe <- function(A, B, D, L, p = 101, alg = "brute_force",alphas=F) {
   abflg <- missing(A) & missing(B)
   dlflg <- missing(D) & missing(L)
   if (abflg & dlflg) {
@@ -106,10 +107,18 @@ hpe <- function(A, B, D, L, p = 101, alg = "brute_force") {
   } else {
     gAr <- NA
     gBr <- NA
+    warning('No suitable gammas found for given p, try increasing this parameter')
   }
 
-  #use gt (gamma-track matrix) to find where
-  fin <- list(h=he, gamma1 = gAr, gamma2 = gBr)
+  if(!alphas){
+    fin <- list(h=he, gamma1 = gAr, gamma2 = gBr)
+  } else {
+    an <- as.numeric(length(A))
+    bn <- as.numeric(length(B))
+    aw <- an / (an+bn)
+    ab <- bn / (an+bn)
+    fin <- list(h=he, gamma1 = gAr, gamma2 = gBr,alphas=c(w=aw,b=ab))
+  }
 
   #return estimate
   return(fin)

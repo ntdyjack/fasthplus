@@ -172,6 +172,12 @@ For most values of $p$ the algorithms have comparable performance.
 
 In practice, the two algorithms have similar performance for most values of $p$. However, as Algorithm 2 performs strictly less calculations than Algorithm 1, we suggest Algorithm 2 for any $p > 101$.
 
+### `alphas`
+
+A boolean value which indicates whether `hpe()`  should include the values for $\alpha_{W}$ and $\alpha_{B}$ , the portion of dissimilarities that are either between within and between-cluster.
+These $\alpha$ values can be used to form a hueristic for comparing multiple labels $L_{1},L_{2},\dots$ which have differening balances of between and within-cluster dissimilarities.
+To compare $H_{+,1},H_{+,2}$ induced using two labels $L_{1},L_{2}$, we suggest scaling one label to the $\alpha$ balance of the other: $H_{+,2}'= H_{+,2} \cdot \frac{\alpha_{2}(1-\alpha{2})}{\alpha_{1}(1-\alpha{1})}$.
+The lesser of $H_{+,1}$ and $H_{+,2}'$  then indicates the less disconcordant of the two labels.
 
 # Examples
 
