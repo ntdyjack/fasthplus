@@ -28,7 +28,7 @@ hpb <- function(D, L, r=30, s) {
   if(dlflg){
     stop("please provide both D and L")
   }
-  tyflg <- !any(class(D) %in% c('matrix','data.frame')) & is.numeric(D)
+  tyflg <- !(any(class(D) %in% c('matrix','data.frame'))) | !is.numeric(D)
   if(tyflg){
    stop("please ensure D is a numeric matrix or data.frame")
   }
