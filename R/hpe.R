@@ -39,7 +39,7 @@ hpe <- function(A, B, D, L, p = 101, alg = "brute_force",alphas=F) {
   if (abflg & dlflg) {
     stop("please provide either (A and B) or (D and L)")
   } else if (!abflg) {
-    nmflg <- (!is.numeric(A) & !is.numeric(A))
+    nmflg <- (!is.numeric(A) & !is.numeric(B))
     if (nmflg) {
       stop("please ensure A B are numeric")
     } else {
