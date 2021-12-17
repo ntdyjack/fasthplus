@@ -74,7 +74,11 @@ hpe <- function(A, B, D, L, p = 101, alg = "brute_force",alphas=F) {
     B <- D[ib]
   }
   
-  
+  plflg <- ! (class(p) %in% c('numeric','integer') | p >= min(length(A),length(B)))
+  if(plflg){
+    stop("please ensure p a small numeric or integer , <1% of observations")
+  } 
+ 
   ps <- seq(0, 1, length.out = p)
   qA <- quantile(A, probs = ps)
   qB <- quantile(B, probs = ps)

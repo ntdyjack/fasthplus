@@ -36,7 +36,7 @@ hpb <- function(D, L, r=30, s) {
   if(dmflg){
     stop("Dimension mismatch for D and L")
   }
-  srflg <- ! class(r) %in% c('numeric','integer') & class(s) %in% c('numeric','integer')
+  srflg <- ! (class(r) %in% c('numeric','integer') & class(s) %in% c('numeric','integer'))
   if(srflg){
     stop("please ensure r and s are numeric or integer")
   }
