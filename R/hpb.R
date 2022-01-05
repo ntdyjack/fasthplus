@@ -23,7 +23,7 @@
 #' l <- c(rep(0,500), rep(1,500))
 #' h <- hpb(D=x, L=l, r=30,s=50)
 #' 
-hpb <- function(D, L, r=30, s) {
+hpb <- function(D, L, r=30, t) {
   dlflg <- missing(D) | missing(L)
   if(dlflg){
     stop("please provide both D and L")
@@ -36,16 +36,16 @@ hpb <- function(D, L, r=30, s) {
   if(dmflg){
     stop("Dimension mismatch for D and L")
   }
-  srflg <- ! (class(r) %in% c('numeric','integer') & class(s) %in% c('numeric','integer'))
-  if(srflg){
-    stop("please ensure r and s are numeric or integer")
+  trflg <- ! (class(r) %in% c('numeric','integer') & class(t) %in% c('numeric','integer'))
+  if(trflg){
+    stop("please ensure r and t are numeric or integer")
   }
-  snflg <- s >= nrow(D)
-  if(snflg){
-    stop("s is too large, try ~1-5% of observations")
+  tnflg <- t >= nrow(D)
+  if(tnflg){
+    stop("t is too large, try ~1-5% of observations")
   }
   lbtab <- table(L)/length(L) #pre-compute this table / list
   lblis <- lapply(names(lbtab), function(x) which(L==x))
-  hpb <- mean(replicate(r,bsf(d=D,l=L,s=s,q=lblis),T))
+  hpb <- mean(replicate(r,bsf(d=D,l=L,t=t,q=lblis),T))
   return(hpb)
 }

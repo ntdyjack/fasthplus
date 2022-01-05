@@ -13,11 +13,11 @@
 #' @importFrom stats dist
 #' @keywords internal
 
-bsf <- function(d,l,s,q){
+bsf <- function(d,l,t,q){
   #is this a general solution to sampling from classes in a balanced way?
   #q <- table(l)/length(l)
   #p <- as.vector(sapply(names(q), function(x) sample(which(l==x),round(s/length(q)))))
-  p <- as.vector(sapply(q, function(x) sample(x,round(s/length(q)))))
+  p <- as.vector(sapply(q, function(x) sample(x,round(t/length(q)))))
   lab <- l[p]
   dis <- as.matrix(dist(d[p,]))
   dis <- dis[upper.tri(dis)]

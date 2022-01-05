@@ -6,7 +6,7 @@ The fasthplus R package provides fast approximations for metrics of
 discordance or dissimilarity. 
 
 The metric G+ was
-[introduced by F. James Rohlf in 1974](https://www.annualreviews.org/doi/abs/10.1146/annurev.es.05.110174.000533) 
+[introduced by W. T. Williams in 1971](https://onlinelibrary.wiley.com/doi/abs/10.2307/1218253) 
 as a way to measure the discordance or dissimilarity between two different classifications (where the classification consists of distance matrix and a set of predicted labels for each observation). 
 
 Here, we introduce the H+, which is a modified discordance metric of G+. 
