@@ -144,20 +144,23 @@ The primary workhorse functions in `fasthplus` are the `hpe()` (H Plus Estimator
 
 In general, the computationally expensive aspects of explicit $H_{+}$ calculation are calculation of the dissimilarity matrix $D$ and the number of discordant pairs $s$ (Dyjack et al. 2022).
 
-(maybe put the computational figure here?)
+```{r performance-plot, echo=FALSE, fig.cap='[Demonstration of computation time (in seconds) for several components of estimating H+]', out.width = '80%', fig.align='center'}
+knitr::include_graphics("performance_plot.jpeg")
+```
 
 Both `hpe()` and `hpb()` are estimation procedures for $H_{+}$ which circumnavigate the most costly step: explicit calculation of $s$ by comparing each within-cluster distance to every between-cluster distance.
 
 The two functions differ in their treatment of the dissimilarity matrix $D$, yielding distinct computational and theoretical advantages for each.
 
-The primary difference is that `hpe()` requires calculation of the full $D$ matrix as either an argument or an internal routine, while `hpb()` calculates sub-matrices of $D$ per iteration
-
 On a modest machine, calculating and storing $D$ becomes cumbersome at around 10000 observations with 1000 features.
 
+The primary difference is that `hpe()` requires calculation of the full $D$ matrix as either an argument or an internal routine, while `hpb()` calculates sub-matrices of $D$ per iterate.
+
+The more explicit `hpe()` gives a numerical bound for the accuracy as a function of $p$, while the convegence of `hpb()` at this point is largely heuristic.
 
 For smaller datasets, the `fasthplus` package includes two fast algorithms to estimate $H_{+}$.
 
-If calculation of $D$ is practical or fine control of numerical accuracy of the estimate is requir we recommend the utilization of the `hpe()` (H Plus Estimator) function.
+If calculation of $D$ is practical or fine control of numerical accuracy of the estimate is required we recommend the utilization of the `hpe()` (H Plus Estimator) function.
 
 
 # Using `hpe()` in `fasthplus`
@@ -201,7 +204,7 @@ A boolean value which indicates whether `hpe()`  should include the values for $
 <!---
 These $\alpha$ values can be used to form a hueristic for comparing two labels $L_{1},L_{2}$ which have different balances of between and within-cluster dissimilarities.
 To compare $H_{+,1},H_{+,2}$ induced from labels $L_{1},L_{2}$, we suggest scaling one label to the $\alpha$ balance of the other: $H`_{+,2}= H_{+,2} \cdot \frac{\alpha_{2}(1-\alpha{2})}{\alpha_{1}(1-\alpha{1})}$.
-The lesser of $H_{+,1}$ and $H_{+,2}'$  then indicates the less disconcordant of the two labels.
+The lesser of $H_{+,1}$ and $H_{+,2}$  then indicates the less disconcordant of the two labels.
 -->
 
 # Using `hpb()` in `fasthplus` for larger datasets or less stringent accuracy requirements
@@ -214,22 +217,21 @@ The `fasthplus` package also includes a bootstrap implementation `hpb()` for est
 
 ## Additional arguments
 
-In addition to either $A,B$ or $D,L$, the user may also provide `hpe()` with two additional arguments: `p` and `alg`
+In addition $D,L$, the user provides `hpe()` with two additional arguments: `p` and `alg`
 
 ### `r`
 
-An `integer` value that specifies the number of percentiles to calculate for each set $A,B$.
-`p` is used to specify the desired accuracy of the $H_{+}$ estimate, where the theoretical accuracy is guaranteed within $\pm \frac{1}{p-1}$.
-The default value `p=101`, that is, an accuracy of 0.01. 
+An `integer` value that specifies the number of bootstrap replicates to compute, default is 30.
 
-### `s`
+### `t`
 
+An `integer` which specifies the number of samples within each bootstrap, no default value.
 
 # Examples
 
-To demonstrate `hpe()`, we consider several simulated data sets:
+To demonstrate `hpe()` and `hpb()`, we consider several simulated data sets:
 
-## Example 1: $A,B$ formulation
+## Example 1: $A,B$ formulation with `hpe()`
 
 This formulation seeks to quantify the answer a simple question: for two sets $A,B$ how often can we expect that $a>b,a \in A,b \in B$?
 
@@ -270,8 +272,8 @@ n <- 1000
 m <- 100
 cl1 <- sapply(1:n, function(i) rnorm(n=m,mean=0.5,sd=1))
 cl2 <- sapply(1:n, function(i) rnorm(n=m,mean=-0.5,sd=1))
-dat <- cbind(cl1,cl2)
-d <- dist(t(dat))
+dat <- t(cbind(cl1,cl2))
+d <- dist(dat)
 dvec <- as.matrix(d)
 dvec <- dvec[upper.tri(dvec)]
 l <- c(rep(0,n),rep(1,n))
@@ -293,6 +295,7 @@ Here is our estimate of $H_{+}$:
 
 ```{r}
 hpe(D=d,L=l) # D, L formulation
+hpb(D=dat,L=l,r=30,t=30) #bootstrap
 ```
 
 For comparison, we also demonstrate calculation of $G_{+}$ using the `clusterCrit` package.
@@ -300,7 +303,7 @@ Note that `clusterCrit` takes the data `dat` directly as an argument, while `fas
 
 ```{r}
 library(clusterCrit)
-intCriteria(traj=t(dat),part=as.integer(l),crit='G_plus')
+intCriteria(traj=dat,part=as.integer(l),crit='G_plus')
 ```
 
 
@@ -320,9 +323,9 @@ In this way, we explore how $H_{+}$ ang $G_{+}$ behave in the case where a clust
 ```{r,fig.width=6,fig.height=4}
 n <- 1000
 m <- 100
-dat <- sapply(1:n, function(i) rnorm(n=m,mean=0,sd=1))
-d <- dist(t(dat))
-pc <- prcomp(t(dat))$x[,1:2]
+dat <- t(sapply(1:n, function(i) rnorm(n=m,mean=0,sd=1)))
+d <- dist(dat)
+pc <- prcomp(dat)$x[,1:2]
 l <- round(runif(n=n))
 cols <- ifelse(l==1,'#0000ff64','#ff000064')
 plot(x=pc[,1],y=pc[,2],pch=16,col=cols,cex=0.7,xaxs = "i",yaxs = "i",xlab='PC1',ylab='PC2',xaxt='n',yaxt='n')
@@ -332,8 +335,8 @@ legend('topleft',legend=c(expression('Cl'[1]), expression('Cl'[2])), pch=c(21,21
 
 ```{r}
 hpe(D=d,L=l) # D,L formulation
-intCriteria(traj=t(dat),part=as.integer(l),crit='G_plus') #G+ value
-hpb(d=dat,
+intCriteria(traj=dat,part=as.integer(l),crit='G_plus') #G+ value
+hpb(D=dat,L=l,r=30,t=30) #bootstrap
 ```
 
 
@@ -347,10 +350,10 @@ In this way, we explore how $H_{+}$ and $G_{+}$ behave in the case where a clust
 n <- 500
 cl1 <- sapply(1:n, function(i) rnorm(n=m,mean=0.5,sd=1))
 cl2 <- sapply(1:n, function(i) rnorm(n=m,mean=-0.5,sd=1))
-dat <- cbind(cl1,cl2)
-d <- dist(t(dat))
+dat <- t(cbind(cl1,cl2))
+d <- dist(dat)
 l <- c(rep(0,n),rep(1,n))
-pc <- prcomp(t(dat))$x[,1:2]
+pc <- prcomp(dat)$x[,1:2]
 cols <- ifelse(l==1,'#0000ff64','#ff000064')
 plot(x=pc[,1],y=pc[,2],pch=16,col=cols,cex=0.7,xaxs = "i",yaxs = "i",xlab='PC1',ylab='PC2',xaxt='n',yaxt='n')
 legend('top',legend=c(expression('Cl'[1]), expression('Cl'[2])), pch=c(21,21),
@@ -359,7 +362,8 @@ legend('top',legend=c(expression('Cl'[1]), expression('Cl'[2])), pch=c(21,21),
 
 ```{r}
 hpe(D=d,L=l) #D,L formulation
-intCriteria(traj=t(dat),part=as.integer(l),crit='G_plus')
+hpb(D=dat,L=l,r=30,t=30) #bootstrap
+intCriteria(traj=dat,part=as.integer(l),crit='G_plus')
 ```
 
 # References

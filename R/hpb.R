@@ -7,7 +7,7 @@
 #' @param D numeric matrix or data frame with observations in rows (nxm)
 #' @param L numeric vector containing a set of length n
 #' @param r numeric number of bootstrap iterations
-#' @param s numeric  pre-bootstrap sample size 
+#' @param t numeric  pre-bootstrap sample size 
 #' 
 #' @return list, h is the estimated H+ value.
 #' @return gamma1 and gamma2 are plausible ranges for what % of A (or Dw)
@@ -21,7 +21,7 @@
 #' b <- sapply(1:500, function(i) rnorm(n=50, mean=0))
 #' x <- t(cbind(a,b))
 #' l <- c(rep(0,500), rep(1,500))
-#' h <- hpb(D=x, L=l, r=30,s=50)
+#' h <- hpb(D=x, L=l, r=30,t=50)
 #' 
 hpb <- function(D, L, r=30, t) {
   dlflg <- missing(D) | missing(L)

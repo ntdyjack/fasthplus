@@ -4,7 +4,7 @@
 \alias{bsf}
 \title{Bootstrap function (bsf) for H+ Estimate}
 \usage{
-bsf(d, l, s, q)
+bsf(d, l, t, q)
 }
 \arguments{
 \item{d}{(data, nxm)}

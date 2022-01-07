@@ -4,7 +4,7 @@
 \alias{hpb}
 \title{H+ discordance estimation with bootstrapping}
 \usage{
-hpb(D, L, r = 30, s)
+hpb(D, L, r = 30, t)
 }
 \arguments{
 \item{D}{numeric matrix or data frame with observations in rows (nxm)}
@@ -13,7 +13,7 @@ hpb(D, L, r = 30, s)
 
 \item{r}{numeric number of bootstrap iterations}
 
-\item{s}{numeric  pre-bootstrap sample size}
+\item{t}{numeric  pre-bootstrap sample size}
 }
 \value{
 list, h is the estimated H+ value.
@@ -32,6 +32,6 @@ a <- sapply(1:500, function(i) rnorm(n=50, mean=0))
 b <- sapply(1:500, function(i) rnorm(n=50, mean=0))
 x <- t(cbind(a,b))
 l <- c(rep(0,500), rep(1,500))
-h <- hpb(D=x, L=l, r=30,s=50)
+h <- hpb(D=x, L=l, r=30,t=50)
 
 }
