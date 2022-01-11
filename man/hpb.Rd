@@ -13,7 +13,7 @@ hpb(D, L, r = 30, t)
 
 \item{r}{numeric number of bootstrap iterations}
 
-\item{t}{numeric  pre-bootstrap sample size}
+\item{t}{numeric  pre-bootstrap sample size, 1-5\% of n}
 }
 \value{
 list, h is the estimated H+ value.

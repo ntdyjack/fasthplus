@@ -134,47 +134,26 @@ In other words, instead of scaling $s$ by the total number of ways to compare ev
 
 $H_{+}$ can be thought of as the product of two parameters $\gamma_{A},\gamma_{B}$, which lends itself to a simple interpretation for $H_{+}$: $\gamma_{A}\times100\%$ of $a \in A$ are strictly greater than $\gamma_{B}\times100\%$ of $b \in B$.
 
-We provide two equivalent algorithms for this estimation process, with the further benefit that our algorithms yields a range of reasonable values for $\gamma_{A},\gamma_{B}$.
-
-For further exploration of discordance, these estimators ($G_{+}$ and $H_{+}$), as well as their theoretical properties, please see Dyjack et al. (2022).
+We provide two equivalent algorithms for this estimation process, with the further benefit that our algorithms yields a range of reasonable values for $\gamma_{A},\gamma_{B}$. For further exploration of discordance, these estimators ($G_{+}$ and $H_{+}$), as well as their theoretical properties, please see Dyjack et al. (2022).
 
 # $H_{+}$ estimation in `fasthplus` with `hpe()` and `hpb()`
 
-The primary workhorse functions in `fasthplus` are the `hpe()` (H Plus Estimator) and `hpb()` (H Plus Bootstrap) functions.
-
-In general, the computationally expensive aspects of explicit $H_{+}$ calculation are calculation of the dissimilarity matrix $D$ and the number of discordant pairs $s$ (Dyjack et al. 2022).
+The primary workhorse functions in `fasthplus` are the `hpe()` (H Plus Estimator) and `hpb()` (H Plus Bootstrap) functions. In general, the computationally expensive aspects of explicit $H_{+}$ are calculating the dissimilarity matrix $D$ and the number of discordant pairs $s$ (Dyjack et al. 2022). On a modest machine, calculating and storing $D$ becomes cumbersome at around 10000 observations with 1000 features.
 
 ```{r performance-plot, echo=FALSE, fig.cap='[Demonstration of computation time (in seconds) for several components of estimating H+]', out.width = '80%', fig.align='center'}
 knitr::include_graphics("performance_plot.jpeg")
 ```
 
-Both `hpe()` and `hpb()` are estimation procedures for $H_{+}$ which circumnavigate the most costly step: explicit calculation of $s$ by comparing each within-cluster distance to every between-cluster distance.
-
-The two functions differ in their treatment of the dissimilarity matrix $D$, yielding distinct computational and theoretical advantages for each.
-
-On a modest machine, calculating and storing $D$ becomes cumbersome at around 10000 observations with 1000 features.
-
-The primary difference is that `hpe()` requires calculation of the full $D$ matrix as either an argument or an internal routine, while `hpb()` calculates sub-matrices of $D$ per iterate.
-
-The more explicit `hpe()` gives a numerical bound for the accuracy as a function of $p$, while the convegence of `hpb()` at this point is largely heuristic.
-
-For smaller datasets, the `fasthplus` package includes two fast algorithms to estimate $H_{+}$.
-
-If calculation of $D$ is practical or fine control of numerical accuracy of the estimate is required we recommend the utilization of the `hpe()` (H Plus Estimator) function.
-
+Both `hpe()` and `hpb()` are estimation procedures for $H_{+}$ which circumnavigate the most costly step: explicit calculation of $s$ by comparing each within-cluster distance $D_{W}$ to every between-cluster distance $D_{B}$. The two functions differ in their treatment of the dissimilarity matrix $D$, yielding distinct computational and theoretical advantages for each. The primary difference is that `hpe()` requires calculation of the full $D$ matrix as either an argument or an internal routine. The more explicit `hpe()` gives a numerical bound for the accuracy as a function of $p$ and further benefits from facility to estimate $\gamma_{W}$ and $\gamma_{B}$. The more efficient `hpb()` calculates sub-matrices of $D$ per iterate and convergence is primarily due to large sample-size behaviors. For smaller datasets, the `fasthplus` package includes two fast algorithms to estimate $H_{+}$. If calculation of $D$ is practical or fine control of numerical accuracy of the estimate is required we recommend the utilization of the `hpe() function. Otherwise, the scalability of `hpb()` makes it the more practical solution.
 
 # Using `hpe()` in `fasthplus`
 
-The `fasthplus` package includes two fast algorithms to estimate $H_{+}$. 
-
-The primary workhorse function in `fasthplus` is the `hpe()` (H Plus Estimator) function.
-
 As input, `hpe()` can estimate $H_{+}$ using **either**:
 
-1. Two arbitrary vectors of length $n$: $A = \{a_1, \ldots, a_n\}$ and $B = \{b_1, \ldots, b_n\}$
+1. Two arbitrary vectors: $A = \{a_1, \ldots \}$ and $B = \{b_1, \ldots \}$
 2. A dissimilarity matrix $D$ of dimension $n \times n$ and set of labels $L$  of length $n$
 
-The `hpe()` function returns a numeric value for $H_{+}$ given $A,B$ or $D,L$.
+The `hpe()` function returns a numeric value for $H_{+}$ given $A,B$ or $D,L$, or it returns a list with the additional parameters (alpha and gamma) specified.
 
 In comparison to similar cluster-fitness packages (`clusterCrit`), which induce Euclidean distance from the observations, `fasthplus` is designed to handle an arbitrary dissimilarity matrix.
 
@@ -190,6 +169,7 @@ The default value `p=101`, that is, an accuracy of 0.01.
 
 ### `alg`
 
+The `fasthplus` package includes two fast algorithms to estimate $H_{+}$.
 A character string referring to two algorithms used to estimate $H_{+}$.
 For most values of $p$ the algorithms have comparable performance.
 
@@ -200,20 +180,21 @@ In practice, the two algorithms have similar performance for most values of $p$.
 
 ### `alphas`
 
-A boolean value which indicates whether `hpe()`  should include the values for $\alpha_{W}$ and $\alpha_{B}$ , the portion of dissimilarities that are either between within and between-cluster.
-<!---
-These $\alpha$ values can be used to form a hueristic for comparing two labels $L_{1},L_{2}$ which have different balances of between and within-cluster dissimilarities.
-To compare $H_{+,1},H_{+,2}$ induced from labels $L_{1},L_{2}$, we suggest scaling one label to the $\alpha$ balance of the other: $H`_{+,2}= H_{+,2} \cdot \frac{\alpha_{2}(1-\alpha{2})}{\alpha_{1}(1-\alpha{1})}$.
-The lesser of $H_{+,1}$ and $H_{+,2}$  then indicates the less disconcordant of the two labels.
--->
+A logical which indicates whether `hpe()`  should include the values for $\alpha_{W}$ and $\alpha_{B}$, the portion of dissimilarities that are either between within and between-cluster.
 
-# Using `hpb()` in `fasthplus` for larger datasets or less stringent accuracy requirements
+### `gammas`
 
-If the calculation of $D$ 
+A logical which indicates whether `hpe()` should include estimates for $\gamma_{W}$ and $\gamma_{B}$, that is, approximately what percent of $D_{W}$ are strictly greater than are greater than $D_{B}$.
+
+# Using `hpb()` in `fasthplus`
 
 The `fasthplus` package also includes a bootstrap implementation `hpb()` for estimating $H_{+}$.
 
 `hpb()` simply takes data and a label as arguments; the dissimilarities are sub-sampled internally.
+
+1. A data matrix $D$ with n rows (observations) corresponding to a vector L of length $n$.
+
+The `hpe()` function returns a numeric value for $H_{+}$ given $D,L$.
 
 ## Additional arguments
 
@@ -226,6 +207,7 @@ An `integer` value that specifies the number of bootstrap replicates to compute,
 ### `t`
 
 An `integer` which specifies the number of samples within each bootstrap, no default value.
+Should be around 1-5% of the number of observations in the dataset (does this need to be verified????)
 
 # Examples
 
@@ -253,7 +235,7 @@ legend('topright',legend=c("A","B"), pch=c(22,22),
 Here is our estimate of $H_{+}$: 
 
 ```{r}
-hpe(A=a,B=b) #A, B formulation
+hpe(A=a,B=b,p=1001) #A, B formulation
 ```
 
 
@@ -294,8 +276,8 @@ legend('topright',legend=c(expression('D'[W]), expression('D'[B])), pch=c(22,22)
 Here is our estimate of $H_{+}$: 
 
 ```{r}
-hpe(D=d,L=l) # D, L formulation
-hpb(D=dat,L=l,r=30,t=30) #bootstrap
+hpe(D=d,L=l,p=1001) # D, L formulation
+hpb(D=dat,L=l,r=100,t=100) #bootstrap
 ```
 
 For comparison, we also demonstrate calculation of $G_{+}$ using the `clusterCrit` package.
@@ -361,8 +343,8 @@ legend('top',legend=c(expression('Cl'[1]), expression('Cl'[2])), pch=c(21,21),
 ```
 
 ```{r}
-hpe(D=d,L=l) #D,L formulation
-hpb(D=dat,L=l,r=30,t=30) #bootstrap
+hpe(D=d,L=l,p=1001) #D,L formulation
+hpb(D=dat,L=l,r=100,t=100) #bootstrap
 intCriteria(traj=dat,part=as.integer(l),crit='G_plus')
 ```
 

@@ -7,7 +7,7 @@
 #' @param D numeric matrix or data frame with observations in rows (nxm)
 #' @param L numeric vector containing a set of length n
 #' @param r numeric number of bootstrap iterations
-#' @param t numeric  pre-bootstrap sample size 
+#' @param t numeric  pre-bootstrap sample size, 1-5% of n 
 #' 
 #' @return list, h is the estimated H+ value.
 #' @return gamma1 and gamma2 are plausible ranges for what % of A (or Dw)

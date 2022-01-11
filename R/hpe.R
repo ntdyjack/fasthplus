@@ -12,11 +12,12 @@
 #' @param L numeric or character vector of length n
 #' @param p integer representing the number of percentiles
 #' @param alg character string ("brute_force" or "grid_search") representing the choice of algorithm used to estimate H+
-#' @param alphas boolean indicator to return alpha values that parameterize balance of within/between cluster distances
+#' @param alphas logical indicator to return alpha values that parameterize balance of within/between cluster distances
+#' @param gammas logical indicator to return estimate for gamma values that parameterize what %Dw is greater than a second %Db
 #' 
-#' @return list, h is the estimated H+ value.
-#' @return gamma1 and gamma2 are plausible ranges for what % of A (or Dw)
-#' @return are strictly greater than B (or Db)
+#' @return h is the estimated H+ value.
+#' @return (optional) aw and ab (alphaW and alphaB) are (respectively) the portion of within- and between-cluster distances (or portional sizes of A and B)
+#' @return (optional) gw and gb (gammaW and gammaB) are plausible ranges for gw*100% of Dw (or A) are strictly greater than gw*100% Db (or B)
 #' @export
 #' 
 #' @importFrom stats median quantile
@@ -33,19 +34,24 @@
 #' l <- c(rep(0,500), rep(1,500))
 #' h <- hpe(D=d, L=l, p=101, alg="brute_force")
 #' 
-hpe <- function(A, B, D, L, p = 101, alg = "brute_force",alphas=F) {
+hpe <- function(A, B, D, L, p = 101, alg = "brute_force",alphas=F,gammas=F) {
   abflg <- missing(A) & missing(B)
   dlflg <- missing(D) & missing(L)
+
   if (abflg & dlflg) {
     stop("please provide either (A and B) or (D and L)")
-  } else if (!abflg) {
+  }
+
+  if (!abflg) {
     nmflg <- (!is.numeric(A) & !is.numeric(B))
     if (nmflg) {
       stop("please ensure A B are numeric")
-    } else {
-      print("Estimating H+ using A B formulation...")
-    }
-  } else if (!dlflg) {
+    } #else {
+      #print("Estimating H+ using A B formulation...")
+    #}
+  }
+
+  if (!dlflg) {
     #  tyflg <- !(class(D)=='dist' | (is.matrix(D) & isSymmetric(D)  & is.numeric(D)) )
     tyflg <- !(class(D) == 'dist')
     if (tyflg) {
@@ -59,9 +65,9 @@ hpe <- function(A, B, D, L, p = 101, alg = "brute_force",alphas=F) {
     dmflg <- !(ncol(D) == nrow(D) & ncol(D) == length(L))
     if (dmflg) {
       stop("Dimension mismatch for D and L")
-    } else {
-      print("Estimating H+ using D L formulation...")
-    }
+    }# else {
+#      print("Estimating H+ using D L formulation...")
+#    }
     #ind <- sapply(L, function(x)
     #  sapply(L, function(y)
     #    x == y))
@@ -116,15 +122,23 @@ hpe <- function(A, B, D, L, p = 101, alg = "brute_force",alphas=F) {
     warning('No suitable gammas found for given p, try increasing this parameter')
   }
 
-  if(!alphas){
-    fin <- list(h=he, gamma1 = gAr, gamma2 = gBr)
+  if(!alphas & !gammas){
+    #fin <- list(h=he, gamma1 = gAr, gamma2 = gBr)
+    fin <- he
   } else {
     an <- as.numeric(length(A))
     bn <- as.numeric(length(B))
     aw <- an / (an+bn)
     ab <- bn / (an+bn)
-    fin <- list(h=he, gamma1 = gAr, gamma2 = gBr,alphas=c(w=aw,b=ab))
-  }
+  } 
+
+  if (alphas & gammas){
+    fin <- list(h=he, gammas=c(gw =gAr, gb = gB), alphas=c(w=aw,b=ab))
+  } else if (alphas & !gammas) {
+    fin <- list(h=he, alphas=c(w=aw,b=ab))
+  } else if (!alphas & gammas) {
+    fin <- list(h=he, gammas=c(gw =gAr, gb = gB))
+  } 
 
   #return estimate
   return(fin)
