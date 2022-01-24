@@ -34,7 +34,7 @@
 #' l <- c(rep(0,500), rep(1,500))
 #' h <- hpe(D=d, L=l, p=101, alg="brute_force")
 #' 
-hpe <- function(A, B, D, L, p = 101, alg = "brute_force",alphas=F,gammas=F) {
+hpe <- function(A, B, D, L, p = 101, alg = "brute_force",alpha=F,gammas=F) {
   abflg <- missing(A) & missing(B)
   dlflg <- missing(D) & missing(L)
 
@@ -55,7 +55,7 @@ hpe <- function(A, B, D, L, p = 101, alg = "brute_force",alphas=F,gammas=F) {
     #  tyflg <- !(class(D)=='dist' | (is.matrix(D) & isSymmetric(D)  & is.numeric(D)) )
     tyflg <- !(class(D) == 'dist')
     if (tyflg) {
-      stop("please ensure D is a dist objcect")
+      stop("please ensure D is a dist object")
     }
     tyflg <- !(is.numeric(L) | is.character(L))
     if (tyflg) {
@@ -122,20 +122,20 @@ hpe <- function(A, B, D, L, p = 101, alg = "brute_force",alphas=F,gammas=F) {
     warning('No suitable gammas found for given p, try increasing this parameter')
   }
 
-  if(!alphas & !gammas){
+  if(!alpha & !gammas){
     #fin <- list(h=he, gamma1 = gAr, gamma2 = gBr)
     fin <- he
   } else {
     an <- as.numeric(length(A))
     bn <- as.numeric(length(B))
     aw <- an / (an+bn)
-    ab <- bn / (an+bn)
+    #ab <- bn / (an+bn)
   } 
 
   if (alphas & gammas){
-    fin <- list(h=he, gammas=c(gw =gAr, gb = gB), alphas=c(w=aw,b=ab))
+    fin <- list(h=he, gammas=c(gw =gAr, gb = gB), alpha=aw)
   } else if (alphas & !gammas) {
-    fin <- list(h=he, alphas=c(w=aw,b=ab))
+    fin <- list(h=he, alpha=aw)
   } else if (!alphas & gammas) {
     fin <- list(h=he, gammas=c(gw =gAr, gb = gB))
   } 

@@ -53,20 +53,20 @@ This vignette serves as an introductory example on how to utilize the `fasthplus
 
 # Introduction
 
-A standard analysis using high-throughput sequencing data is to cluster observations using a dissimilarity measure. For example, clustering methods that use Euclidean distance are often used with normalized and log2-transformed data. If there does not exist a gold-standard or ground-truth label for each observation, performance measures based on the tightness or consistency of the cluster are often used. 
+A standard analysis for high-dimensional data (such as genomic sequencing) is to cluster (i.e., label or partition) similar observations into discretegroups. Many clustering methods use Euclidean distance induced from normalized (count and/or log2-transformed) data. If there does not exist a gold-standard or ground-truth label for each observation, performance measures based on the tightness or consistency of the cluster are used to asses generated fitness. 
 
-However, when assessing the performance using different dissimilarity measures, the interpretation of these metrics can be problematic as different dissimilarity measures have different magnitudes and ranges of values that they span. To address this problem, here we propose a new performance metric called $H_{+}$, which is an extension of the 'scale-agnostic' $G_{+}$ discordance metric. 
+One may also seek to assessing the performance of multiple dissimilarity measures (i.e., geometric versus statistical dissimilarity [@baker2021fast], however, the interpretation of these metrics can be problematic as different dissimilarity measures have different magnitudes and ranges of values that they span. To address this problem and enrich the body of cluster fitness methods, here we propose a new performance metric called $H_{+}$, which is an extension of the 'scale-agnostic' $G_{+}$ discordance metric. 
 
-## discordance 
+## Discordance 
 
-Generally, discordance can be described using two sets $A$ and $B$ by comparing their elements
+Discordance can be described using two sets $A$ and $B$ by comparing their elements
 
 $$ s=\sum_{a\in A}\sum_{b\in B}1_{[a>b]} $$
 
-Also, we can consider a special case that explores the clustering problem for a given data set with $n$ observations. 
+This notation can be can extended to the clustering problem for a given data set with $n$ observations. 
 
 In the context of the clustering (or identifying predicted class labels), **discordance** can be conceptualized as measure that assess how well a given predicted class (or cluster) label fits the observed data.
-A typical clustering algorithm utilizes a dissimilarity matrix $D(n\times n)$, with $N_{d}=n(n-1)/2$ unique pairs which would correspond to the upper diagonal entries of $D$.
+A typical clustering algorithm utilizes a dissimilarity matrix $D(n\times n)$, with $N_{d}=\binom{n}{2}=n(n-1)/2$ unique pairs which would correspond to the upper diagonal entries of $D$.
 
 $$
 D=\begin{bmatrix}\begin{array}{cccc}
@@ -115,14 +115,14 @@ In other words, discordance metrics such as $G_{+}$ offers a 'scale-agnostic' me
 
 ## $H_{+}$ discordance metric
 
-However, one problem with $G_{+}$ is that it is biased (Dyjack et al. 2021). Specifically, as $\frac{N_{d}}{N_{d}-1} \to 1$, $G_{+}$ is a biased by a factor of $2\alpha(1-\alpha)$ where $\alpha$ is the proportion of $N_d$ distances that are within-cluster. 
+One issue with $G_{+}$ is that it is for the parameter of interest (Dyjack et al. 2021). Specifically, as $\frac{N_{d}}{N_{d}-1} \to 1$, $G_{+}$ is a biased by a factor of $2\alpha(1-\alpha)$ where $\alpha$ is the proportion of $N_d$ distances that are within-cluster. 
 
 ```{r motivating-figure, echo=FALSE, fig.cap='[$G_{+}$ is biased and a function of the proportion of within-cluster distances while $H_{+}$ is unbiased]', out.width = '80%', fig.align='center'}
 knitr::include_graphics("motivating_figure.jpeg")
 ```
 
 
-Hence, if we parameterize the portion of $N_{d}$ that are $d_{ij}\in D_{w}$ such that $\lvert D_{W} \rvert = \alpha N_{d}$, $\alpha \in(0,1)$, and similarly, $\lvert D_{B} \rvert = (1-\alpha) N_{d}$ (and $\lvert D_{W}\rvert+\lvert D_{B}\rvert=N_{d}$), then we can replace the denominator in $G_{+}$ ($N_{d}(N_{d}-1)/2$) with $\lvert D_{W}\rvert \lvert D_{B}\rvert$ in our new discordance metric: 
+Hence, if we parameterize the portion of $N_{d}$ that are $d_{ij}\in D_{W}$ such that $\lvert D_{W} \rvert = \alpha N_{d}$, $\alpha \in(0,1)$, and similarly, $\lvert D_{B} \rvert = (1-\alpha) N_{d}$ (and $\lvert D_{W}\rvert+\lvert D_{B}\rvert=N_{d}$), then we can replace the denominator in $G_{+}$ ($N_{d}(N_{d}-1)/2$) with $\lvert D_{W}\rvert \lvert D_{B}\rvert$ in our new discordance metric: 
 
 $$ 
 H_{+}=\frac{s}{\lvert D_{W}\rvert \lvert D_{B}\rvert}
@@ -132,7 +132,7 @@ In other words, instead of scaling $s$ by the total number of ways to compare ev
 
 ### Interpreting $H_{+}$ with two sets $A$ and $B$
 
-$H_{+}$ can be thought of as the product of two parameters $\gamma_{A},\gamma_{B}$, which lends itself to a simple interpretation for $H_{+}$: $\gamma_{A}\times100\%$ of $a \in A$ are strictly greater than $\gamma_{B}\times100\%$ of $b \in B$.
+$H_{+}$ can be thought of as the product of two parameters $\gamma_{A},\gamma_{B}$, which lends itself to a simple interpretation for $H_{+}$: $\gamma_{A}\times100\%$ of $a \in A$ (or $d_{ij}\in D_{W}$) are strictly greater than $\gamma_{B}\times100\%$ of $b \in B$ (or $d_{kl}\in D_{B}$).
 
 We provide two equivalent algorithms for this estimation process, with the further benefit that our algorithms yields a range of reasonable values for $\gamma_{A},\gamma_{B}$. For further exploration of discordance, these estimators ($G_{+}$ and $H_{+}$), as well as their theoretical properties, please see Dyjack et al. (2022).
 
@@ -144,7 +144,7 @@ The primary workhorse functions in `fasthplus` are the `hpe()` (H Plus Estimator
 knitr::include_graphics("performance_plot.jpeg")
 ```
 
-Both `hpe()` and `hpb()` are estimation procedures for $H_{+}$ which circumnavigate the most costly step: explicit calculation of $s$ by comparing each within-cluster distance $D_{W}$ to every between-cluster distance $D_{B}$. The two functions differ in their treatment of the dissimilarity matrix $D$, yielding distinct computational and theoretical advantages for each. The primary difference is that `hpe()` requires calculation of the full $D$ matrix as either an argument or an internal routine. The more explicit `hpe()` gives a numerical bound for the accuracy as a function of $p$ and further benefits from facility to estimate $\gamma_{W}$ and $\gamma_{B}$. The more efficient `hpb()` calculates sub-matrices of $D$ per iterate and convergence is primarily due to large sample-size behaviors. For smaller datasets, the `fasthplus` package includes two fast algorithms to estimate $H_{+}$. If calculation of $D$ is practical or fine control of numerical accuracy of the estimate is required we recommend the utilization of the `hpe() function. Otherwise, the scalability of `hpb()` makes it the more practical solution.
+Both `hpe()` and `hpb()` are estimation procedures for $H_{+}$ which circumnavigate the most costly step: explicit calculation of $s$ by comparing each within-cluster distance $D_{W}$ to every between-cluster distance $D_{B}$. The two functions differ in their treatment of the dissimilarity matrix $D$, yielding distinct computational and theoretical advantages for each. The primary difference is that `hpe()` requires calculation of the full $D$ matrix as either an argument or an internal routine. The more explicit `hpe()` gives a numerical bound for the accuracy as a function of $p$ and further benefits from facility to estimate $\gamma_{W}$ and $\gamma_{B}$. The more efficient `hpb()` calculates sub-matrices of $D$ per iterate and convergence is primarily due to large sample-size behaviors. If calculation of $D$ is practical or fine control of numerical accuracy of the estimate is required, we recommend the utilization of the `hpe()` function. Otherwise, the scalability of `hpb()` makes it the more practical solution.
 
 # Using `hpe()` in `fasthplus`
 
@@ -153,13 +153,11 @@ As input, `hpe()` can estimate $H_{+}$ using **either**:
 1. Two arbitrary vectors: $A = \{a_1, \ldots \}$ and $B = \{b_1, \ldots \}$
 2. A dissimilarity matrix $D$ of dimension $n \times n$ and set of labels $L$  of length $n$
 
-The `hpe()` function returns a numeric value for $H_{+}$ given $A,B$ or $D,L$, or it returns a list with the additional parameters (alpha and gamma) specified.
-
-In comparison to similar cluster-fitness packages (`clusterCrit`), which induce Euclidean distance from the observations, `fasthplus` is designed to handle an arbitrary dissimilarity matrix.
+The `hpe()` function returns a numeric value for $H_{+}$ given $A,B$ or $D,L$, or it returns a list with the additional parameters (alpha and gamma) specified. In comparison to similar cluster-fitness packages (`clusterCrit`), which induce Euclidean distance from the observations, `fasthplus` is designed to handle an arbitrary dissimilarity matrix.
 
 ## Additional arguments
 
-In addition to either $A,B$ or $D,L$, the user may also provide `hpe()` with two additional arguments: `p` and `alg`
+In addition to either $A,B$ or $D,L$, the user may also provide `hpe()` with four additional arguments: `p`, `alg`, `alpha`, `gammas`
 
 ### `p`
 
@@ -169,7 +167,6 @@ The default value `p=101`, that is, an accuracy of 0.01.
 
 ### `alg`
 
-The `fasthplus` package includes two fast algorithms to estimate $H_{+}$.
 A character string referring to two algorithms used to estimate $H_{+}$.
 For most values of $p$ the algorithms have comparable performance.
 
@@ -178,9 +175,9 @@ For most values of $p$ the algorithms have comparable performance.
 
 In practice, the two algorithms have similar performance for most values of $p$. However, as Algorithm 2 performs strictly less calculations than Algorithm 1, we suggest Algorithm 2 for any $p > 101$.
 
-### `alphas`
+### `alpha`
 
-A logical which indicates whether `hpe()`  should include the values for $\alpha_{W}$ and $\alpha_{B}$, the portion of dissimilarities that are either between within and between-cluster.
+A logical which indicates whether `hpe()` should include the value for $\alpha$, the portion of dissimilarities that are within-cluster.
 
 ### `gammas`
 
@@ -192,13 +189,13 @@ The `fasthplus` package also includes a bootstrap implementation `hpb()` for est
 
 `hpb()` simply takes data and a label as arguments; the dissimilarities are sub-sampled internally.
 
-1. A data matrix $D$ with n rows (observations) corresponding to a vector L of length $n$.
+1. A data matrix $D$ with n rows (observations) and corresponding vector $L$ of length $n$.
 
 The `hpe()` function returns a numeric value for $H_{+}$ given $D,L$.
 
 ## Additional arguments
 
-In addition $D,L$, the user provides `hpe()` with two additional arguments: `p` and `alg`
+In addition $D,L$, the user provides `hpe()` with two additional arguments: `r` and `t`
 
 ### `r`
 
@@ -207,7 +204,7 @@ An `integer` value that specifies the number of bootstrap replicates to compute,
 ### `t`
 
 An `integer` which specifies the number of samples within each bootstrap, no default value.
-Should be around 1-5% of the number of observations in the dataset (does this need to be verified????)
+Should be around 1-5% of the number of observations in the dataset.
 
 # Examples
 
@@ -215,7 +212,7 @@ To demonstrate `hpe()` and `hpb()`, we consider several simulated data sets:
 
 ## Example 1: $A,B$ formulation with `hpe()`
 
-This formulation seeks to quantify the answer a simple question: for two sets $A,B$ how often can we expect that $a>b,a \in A,b \in B$?
+This formulation seeks to quantify the answer a simple question: for two sets $A,B$ how often can we expect that $a>b,a \in A,b \in B$ ?
 
 We simulate $A$ and $B$ as $n=10000$ draws from a univariate normal distributions with unit variance and slightly different means ($\mu_{A}=0.5,\mu_{B}=-0.5$). 
 
@@ -292,9 +289,7 @@ intCriteria(traj=dat,part=as.integer(l),crit='G_plus')
 
 ## Example 3: developing intuition for true value of $H_{+}$
 
-Here we demonstrate the behaviors of $H_{+}$ and `hpe()` for two additional simulated datasets in the $D,L$ formulation.
-
-We hope that this section provides some intuition for the true value of $H_{+}$ in these scenarios, and how this value compares to the estimate given by `hpe()`.
+Here we demonstrate the behaviors of $H_{+}$ and `hpe()` for two additional simulated datasets in the $D,L$ formulation. We hope that this section provides some intuition for the true value of $H_{+}$ in these scenarios, and how this value compares to the estimate given by `hpe()`.
 
 ### Example 3.1: Two highly similar clusters
 
