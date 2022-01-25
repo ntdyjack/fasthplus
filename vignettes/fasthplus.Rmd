@@ -25,21 +25,41 @@ knitr::opts_chunk$set(
 ```
 
 
+# Installation
+
+At present, `fasthplus` is only available for installation via github using the `devtools` package.
+A `CRAN` distribution is in preparation and this section will be updated to reflect its eventual availability.
+
+```{r, eval=FALSE, echo=FALSE}
+if(!requireNamespace('devtools')){
+  install.packages('devtools')
+}
+```
+
+```{r, eval=FALSE}
+devtools::install_github(repo="ntdyjack/fasthplus", 
+                         ref = "main", 
+                         build_vignettes = TRUE, 
+                         subdir = NULL)
+```
+
+Once the package is installed, the library can be loaded:
+
+```{r}
+library(fasthplus)
+```
+
 This vignette serves as an introductory example on how to utilize the `fasthplus` package.
 
 
-# Introduction
+# Background
 
 A standard unsupervised analysis is to cluster (i.e. label or partition) observations into discrete groups using a dissimilarity measure, such as Euclidean distance. 
 If there does not exist a ground-truth label for each observation, internal validity metrics, such as the tightness or consistency are often used, such as within-cluster sums of squares (WCSS) or Silhouette scores [@rousseeuw1987silhouettes] to evaluate the performance of a set of predicted cluster labels. 
 
 Alternatively, one may also seek to assess the performance between multiple dissimilarity measures (i.e., geometric versus probabilistic dissimilarity) [@baker2021fast]. However, when comparing different dissimilarity measures, the interpretation of these performance metrics can be problematic as different dissimilarity measures have different magnitudes and ranges of values that they span leading to different ranges in the tightness of the clusters, thereby making the interpretation of these internal validity metrics difficult. 
 
-One solution is to use **discordance as an internal validity metric**. For example, the discordance metric $G_{+}$ [@williams1971comparison; @rohlf1974methods] depends on the ranks of the dissimilarities, rather than on the dissimilarities themselves, thereby making it a `scale-agnostic'. However, this internal metric is slow to calculate for large data. Furthermore, we show that $G_{+}$ varies as a function of the proportion of observations in the predicted cluster labels (group balance), which is an undesirable property. 
-
-To address this problem, we propose a modification of $G_{+}$, referred to as $H_{+}$, and demonstrate that $H_{+}$ does not vary as a function of group balance using a simulation study and with public single-cell RNA-sequencing data. Finally, we provide scalable approaches to estimate $H_{+}$, which are available in this `fasthplus` R package.
-
-Next, we introduce more formally discordance followed by both the $G_{+}$ and $H_{+}$ discordance metrics. 
+One solution is to use **discordance as an internal validity metric**. For example, the discordance metric $G_{+}$ [@williams1971comparison; @rohlf1974methods] depends on the ranks of the dissimilarities, rather than on the dissimilarities themselves, thereby making it a 'scale-agnostic'. Next, we introduce more formally discordance followed the $G_{+}$ discordance metric along with our proposed discordance metric, $H_{+}$. 
 
 
 ## Discordance metrics 
@@ -134,44 +154,21 @@ $H_{+}$ can be thought of as the product of two parameters $\gamma_{A},\gamma_{B
 
 We provide two equivalent algorithms for this estimation process, with the further benefit that our algorithms yields a range of reasonable values for $\gamma_{A},\gamma_{B}$. For further exploration of discordance, these estimators ($G_{+}$ and $H_{+}$), as well as their theoretical properties, please see Dyjack et al. (2022).
 
+### Approximating $H_{+}$ 
 
-# Installation
+One problem with the $H_{+}$ (and $G_{+}$) discordance metric is that it requires the calculation of both (i) the dissimilarity matrix $D(n\times n)$ and (ii) $s$. On a modest machine, calculating and storing $D$ becomes cumbersome at around 10000 observations with 1000 features. Furthermore, calculating $s$ is even less scalable.
 
-At present, `fasthplus` is only available for installation via github using the `devtools` package.
-A `CRAN` distribution is in preparation and this section will be updated to reflect its eventual availability.
-
-```{r, eval=FALSE, echo=FALSE}
-if(!requireNamespace('devtools')){
-  install.packages('devtools')
-}
-```
-
-```{r, eval=FALSE}
-devtools::install_github(repo="ntdyjack/fasthplus", 
-                         ref = "main", 
-                         build_vignettes = TRUE, 
-                         subdir = NULL                         
-)
-```
-
-Once the package is installed, you can load the library
-
-```{r}
-library(fasthplus)
-```
-
-
-# Using `hpe()` and `hpb()` functions
-
-## Broad overview
-
-The primary workhorse functions in `fasthplus` are the `hpe()` (H Plus Estimator) and `hpb()` (H Plus Bootstrap) functions. In general, the computationally expensive aspects of explicit $H_{+}$ are calculating the dissimilarity matrix $D$ and the number of discordant pairs $s$ (Dyjack et al. 2022). On a modest machine, calculating and storing $D$ becomes cumbersome at around 10000 observations with 1000 features.
-
-```{r performance-plot, echo=FALSE, fig.cap='[Demonstration of computation time (in seconds) for several components of estimating H+]', out.width = '80%', fig.align='center'}
+```{r performance-plot, echo=FALSE, fig.cap='[**Figure 2**: Demonstration of computation time (in seconds) for several components of estimating H+]', out.width = '80%', fig.align='left'}
 knitr::include_graphics("performance_plot.jpeg")
 ```
 
-Both `hpe()` and `hpb()` are estimation procedures for $H_{+}$ which circumnavigate the most costly step: explicit calculation of $s$ by comparing each within-cluster distance $D_{W}$ to every between-cluster distance $D_{B}$. The two functions differ in their treatment of the dissimilarity matrix $D$, yielding distinct computational and theoretical advantages for each. 
+To address this, we propose two estimation procedures for $H_{+}$ that circumnavigate the most costly step: explicit calculation of $s$. However, the two functions differ in their treatment of the dissimilarity matrix $D$, yielding distinct computational and theoretical advantages for each. 
+
+1. HPE ('h-plus estimator' or $H_{e}$) was inspired by the Top-Scoring Pair (TSP) [@leek2009tspair; @magis2012top] algorithms, which uses relative ranks to classify observations and $p$ quantiles of the data (rather than the $n$ observations themselves) where $p << n$, leading to significant improvements in the computational speed to calculate $H_{+}$. 
+
+2. HPB ('h-plus bootstrap' or $H_{b}$) is an algorithm based on bootstrap sampling to avoid calculating the full dissimilarity matrix $D$, thereby leading to further improvements in computational speed to estimate $H_{+}$. 
+
+These functions are implemented in the `hpe()` and `hpb()` functions in the `fasthplus` package, respectively.
 
 The **primary difference** is that `hpe()` requires calculation of the full $D$ matrix as either an argument or an internal routine. 
 
@@ -180,7 +177,9 @@ The **primary difference** is that `hpe()` requires calculation of the full $D$ 
 
 If calculation of $D$ is practical or fine control of numerical accuracy of the estimate is required, we recommend the utilization of the `hpe()` function. Otherwise, the scalability of `hpb()` makes it the more practical solution.
 
-## Using `hpe()`
+
+
+# Using `hpe()`
 
 As input, `hpe()` can estimate $H_{+}$ using **either**:
 
@@ -189,53 +188,51 @@ As input, `hpe()` can estimate $H_{+}$ using **either**:
 
 The `hpe()` function returns a numeric value for $H_{+}$ given $A,B$ or $D,L$, or it returns a list with the additional parameters (alpha and gamma) specified. In comparison to similar cluster-fitness packages (`clusterCrit`), which induce Euclidean distance from the observations, `fasthplus` is designed to handle an arbitrary dissimilarity matrix.
 
-### Additional arguments
+## Additional arguments
 
-In addition to either $A,B$ or $D,L$, the user may also provide `hpe()` with four additional arguments: `p`, `alg`, `alpha`, `gammas`
+In addition to either $A,B$ or $D,L$, the user may also provide `hpe()` with four additional arguments: `p`, `alg`, `alpha`, `gammas`. We describe these in greater detail below.
 
-#### `p`
+### `p`
 
 An `integer` value that specifies the number of percentiles to calculate for each set $A,B$.
 `p` is used to specify the desired accuracy of the $H_{+}$ estimate, where the theoretical accuracy is guaranteed within $\pm \frac{1}{p-1}$.
 The default value `p=101`, that is, an accuracy of 0.01. 
 
-#### `alg`
+### `alg`
 
 A character string referring to two algorithms used to estimate $H_{+}$.
 For most values of $p$ the algorithms have comparable performance.
 
-- `alg = "brute_force"`: (default) this is a 'brute-force' estimation that performs best (in `R`) for smaller values of $p$.
-- `alg = "grid_search"`is a percentile-based ($p$), grid search solution for the same value that dramatically reduces the number of comparisons compared to the number of calculations than Algorithm 1. In Dyjack et al. (2021), we derive a numerical bound for the accuracy of this estimator as a function of $p$, the number of percentiles taken from the two sets of interest. The user can specify $p$, and `hpe()` guarantees accuracy within $\pm \frac{1}{p-1}$ of the true $H_{+}$.
+- `alg = "brute_force"` (default): this is a 'brute-force' estimation that performs best (in `R`) for smaller values of $p$.
+- `alg = "grid_search"`: this is a percentile-based ($p$), grid search solution for the same value that dramatically reduces the number of comparisons compared to the number of calculations than Algorithm 1. In Dyjack et al. (2022), we derive a numerical bound for the accuracy of this estimator as a function of $p$, the number of percentiles taken from the two sets of interest. The user can specify $p$, and `hpe()` guarantees accuracy within $\pm \frac{1}{p-1}$ of the true $H_{+}$.
 
 In practice, the two algorithms have similar performance for most values of $p$. However, as Algorithm 2 performs strictly less calculations than Algorithm 1, we suggest Algorithm 2 for any $p > 101$.
 
-#### `alpha`
+### `alpha`
 
-A logical which indicates whether `hpe()` should include the value for $\alpha$, the portion of dissimilarities that are within-cluster.
+A logical which indicates whether `hpe()` should include the value for $\alpha$, the proportion of dissimilarities that are within-cluster.
 
-#### `gammas`
+### `gammas`
 
 A logical which indicates whether `hpe()` should include estimates for $\gamma_{W}$ and $\gamma_{B}$, that is, approximately what percent of $D_{W}$ are strictly greater than are greater than $D_{B}$.
 
-## Using `hpb()`
+# Using `hpb()`
 
-The `fasthplus` package also includes a bootstrap implementation `hpb()` for estimating $H_{+}$.
-
-`hpb()` simply takes data and a label as arguments; the dissimilarities are sub-sampled internally.
+The `fasthplus` package also includes a bootstrap implementation `hpb()` for estimating $H_{+}$. The `hpb()` function takes in the following as input:
 
 1. A data matrix $D$ with n rows (observations) and corresponding vector $L$ of length $n$.
 
-The `hpe()` function returns a numeric value for $H_{+}$ given $D,L$.
+The dissimilarities are sub-sampled internally and the `hpe()` function returns a numeric value for $H_{+}$ given $D,L$.
 
-### Additional arguments
+## Additional arguments
 
-In addition $D,L$, the user provides `hpe()` with two additional arguments: `r` and `t`
+In addition to $D,L$, the user also provides `hpe()` with two additional arguments: `r` and `t`
 
-#### `r`
+### `r`
 
 An `integer` value that specifies the number of bootstrap replicates to compute, default is 30.
 
-#### `t`
+### `t`
 
 An `integer` which specifies the number of samples within each bootstrap, no default value.
 Should be around 1-5% of the number of observations in the dataset.
@@ -244,7 +241,7 @@ Should be around 1-5% of the number of observations in the dataset.
 
 To demonstrate `hpe()` and `hpb()`, we consider several simulated data sets:
 
-## Example 1: $A,B$ formulation with `hpe()`
+## $A,B$ formulation with `hpe()`
 
 This formulation seeks to quantify the answer a simple question: for two sets $A,B$ how often can we expect that $a>b,a \in A,b \in B$ ?
 
@@ -266,11 +263,11 @@ legend('topright',legend=c("A","B"), pch=c(22,22),
 Here is our estimate of $H_{+}$: 
 
 ```{r}
-hpe(A=a,B=b,p=1001) #A, B formulation
+hpe(A=a,B=b,p=1001) # A, B formulation
 ```
 
 
-## Example 2: $D,L$ formulation
+## $D,L$ formulation with `hpe()`
 
 We can apply $A,B$ formulation to a dissimilarity matrix $D$ and set of cluster labels $L$.
 $L$ can be used to generate a binary adjacency matrix that tells us (for every unique pair of observations) whether two observations belong to the same group.
@@ -308,7 +305,7 @@ Here is our estimate of $H_{+}$:
 
 ```{r}
 hpe(D=d,L=l,p=1001) # D, L formulation
-hpb(D=dat,L=l,r=100,t=100) #bootstrap
+hpb(D=dat,L=l,r=100,t=100) # bootstrap
 ```
 
 For comparison, we also demonstrate calculation of $G_{+}$ using the `clusterCrit` package.
@@ -316,16 +313,16 @@ Note that `clusterCrit` takes the data `dat` directly as an argument, while `fas
 
 ```{r}
 library(clusterCrit)
-intCriteria(traj=dat,part=as.integer(l),crit='G_plus')
+intCriteria(traj=dat, part=as.integer(l), crit='G_plus')
 ```
 
 
 
-## Example 3: developing intuition for true value of $H_{+}$
+## Developing intuition for true value of $H_{+}$
 
 Here we demonstrate the behaviors of $H_{+}$ and `hpe()` for two additional simulated datasets in the $D,L$ formulation. We hope that this section provides some intuition for the true value of $H_{+}$ in these scenarios, and how this value compares to the estimate given by `hpe()`.
 
-### Example 3.1: Two highly similar clusters
+### Example: Two highly similar clusters
 
 We simulate $n=1000$ observations from the same distribution.
 Each observation is randomly (with probability $0.5$) membership in one of two clusters.
@@ -347,11 +344,11 @@ legend('topleft',legend=c(expression('Cl'[1]), expression('Cl'[2])), pch=c(21,21
 ```{r}
 hpe(D=d,L=l) # D,L formulation
 intCriteria(traj=dat,part=as.integer(l),crit='G_plus') #G+ value
-hpb(D=dat,L=l,r=30,t=30) #bootstrap
+hpb(D=dat,L=l,r=30,t=30) # bootstrap
 ```
 
 
-### Example 3.2: Two distinct clusters
+### Example: Two distinct clusters
 
 We simulate $n=1000$ observations from the two distinct distributions.
 Each observation is assigned a cluster label corresponding to the distribution from which it was drawn.
@@ -372,8 +369,8 @@ legend('top',legend=c(expression('Cl'[1]), expression('Cl'[2])), pch=c(21,21),
 ```
 
 ```{r}
-hpe(D=d,L=l,p=1001) #D,L formulation
-hpb(D=dat,L=l,r=100,t=100) #bootstrap
+hpe(D=d,L=l,p=1001) # D,L formulation
+hpb(D=dat,L=l,r=100,t=100) # bootstrap
 intCriteria(traj=dat,part=as.integer(l),crit='G_plus')
 ```
 
