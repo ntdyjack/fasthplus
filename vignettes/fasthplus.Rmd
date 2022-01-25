@@ -1,14 +1,15 @@
 ---
-title: "Metrics of discordance with `fasthplus`"
+title: "`fasthplus`: a scalable discordance metric"
 author: "Nathan Dyjack and Stephanie Hicks"
-date: "Last modified: October 18, 2021; Compiled: `r format(Sys.time(), '%B %d, %Y')`"
+date: "Last modified: January 24, 2022; Compiled: `r format(Sys.time(), '%B %d, %Y')`"
 bibliography: biblio.bib
 output:
   html_document:
+    number_sections: true
     toc: true
-    toc_depth: 2
+    toc_depth: 3
     toc_float:
-      collapsed: false
+      collapsed: true
       smooth_scroll: false
 vignette: >
   %\VignetteEncoding{UTF-8}
@@ -23,7 +24,118 @@ knitr::opts_chunk$set(
 )
 ```
 
-### Installation
+
+This vignette serves as an introductory example on how to utilize the `fasthplus` package.
+
+
+# Introduction
+
+A standard unsupervised analysis is to cluster (i.e. label or partition) observations into discrete groups using a dissimilarity measure, such as Euclidean distance. 
+If there does not exist a ground-truth label for each observation, internal validity metrics, such as the tightness or consistency are often used, such as within-cluster sums of squares (WCSS) or Silhouette scores [@rousseeuw1987silhouettes] to evaluate the performance of a set of predicted cluster labels. 
+
+Alternatively, one may also seek to assess the performance between multiple dissimilarity measures (i.e., geometric versus probabilistic dissimilarity) [@baker2021fast]. However, when comparing different dissimilarity measures, the interpretation of these performance metrics can be problematic as different dissimilarity measures have different magnitudes and ranges of values that they span leading to different ranges in the tightness of the clusters, thereby making the interpretation of these internal validity metrics difficult. 
+
+One solution is to use **discordance as an internal validity metric**. For example, the discordance metric $G_{+}$ [@williams1971comparison; @rohlf1974methods] depends on the ranks of the dissimilarities, rather than on the dissimilarities themselves, thereby making it a `scale-agnostic'. However, this internal metric is slow to calculate for large data. Furthermore, we show that $G_{+}$ varies as a function of the proportion of observations in the predicted cluster labels (group balance), which is an undesirable property. 
+
+To address this problem, we propose a modification of $G_{+}$, referred to as $H_{+}$, and demonstrate that $H_{+}$ does not vary as a function of group balance using a simulation study and with public single-cell RNA-sequencing data. Finally, we provide scalable approaches to estimate $H_{+}$, which are available in this `fasthplus` R package.
+
+Next, we introduce more formally discordance followed by both the $G_{+}$ and $H_{+}$ discordance metrics. 
+
+
+## Discordance metrics 
+
+Discordance can be described using two sets $A$ and $B$ by comparing their elements
+
+$$ s=\sum_{a\in A}\sum_{b\in B}1_{[a>b]} $$
+
+This notation can be can extended to the clustering problem for a given data set with $n$ observations. 
+
+In the context of the clustering (or identifying predicted class labels), **discordance** can be conceptualized as measure that assess how well a given predicted class (or cluster) label fits the observed data.
+A typical clustering algorithm utilizes a dissimilarity matrix $D(n\times n)$, with $N_{d}=\binom{n}{2}=n(n-1)/2$ unique pairs which would correspond to the upper diagonal entries of $D$.
+
+$$
+D=\begin{bmatrix}\begin{array}{cccc}
+d_{11} & d_{12} & \cdots & d_{1n}\\
+ & d_{22} & \cdots & d_{2n}\\
+ &  & \ddots & \vdots\\
+ &  &  & d_{nn}
+\end{array}\end{bmatrix}
+$$
+
+When clustering $n$ observations, one can fix $D$ and place each of $n$ cells in one of $k$ clusters by optimizing some fitness criteria. Cluster fitness relates to how well a set of predicted cluster labels $L=[l_{1},\dots,l_{n}:l_{i}=1\dots,k]$ explain the observed data, for example, using the sum of within-cluster dissimilarities.
+
+In this case, for fixed $L$, we can generate an adjacency matrix that tells us whether each observation has the same label (i.e., falls in the same cluster)
+
+$$
+A=\begin{bmatrix}\begin{array}{cccc}
+a_{11} & a_{12} & \cdots & a_{1n}\\
+ & a_{22} & \cdots & a_{2n}\\
+ &  & \ddots & \vdots\\
+ &  &  & a_{nn}
+\end{array}\end{bmatrix}\hspace{1em}a_{ij}=\begin{array}{cc}
+1 & \mathrm{if}\enspace l_{i}=l_{j}\\
+0 & \mathrm{otherwise}
+\end{array}
+$$
+
+In terms of our notation, $s$ can be written as
+
+$$
+s=\sum_{i=2}^{n}\sum_{j<i}1_{[a_{ij}=1]}\sum_{k=2}^{n}\sum_{l<k}1_{[a_{kl}=0]}1_{[d_{ij}>d_{kl}]}
+$$
+
+### $G_{+}$ discordance metric
+
+Previous work includes the $G_{+}$ discordance metric [@williams1971comparison; @rohlf1974methods] currently available in `R` in the `clusterCrit` package [@desgraupes2018package], where $s$ is scaled by $N_{d}(N_{d}-1)/2={N_{d} \choose 2}$, the total number of ways to compare each unique distance to every other.
+
+$$
+G_{+}=\frac{s}{N_{d}(N_{d}-1)/2}
+$$
+
+Generally, $G_{+}$ close to zero represents two concordant sets, while a larger $G_{+}$ is more dis(con)cordant.
+
+**Applications of $G_{+}$**. The discordance metric $G_{+}$ can be used to quantify the cluster fitness for given a dissimilarity matrix $D$ and predicted cluster label $L$.
+For example, if $D$ is fixed, lower values of $G_{+}$ among many sets of labels $L_{1}, L_{2} \dots$ indicate increased cluster fitness \citep{rand1971objective, williams1971comparison} or better performance.
+If we instead fix $L$, we can also use $G_{+}$ to assess the fitness of multiple dissimilarity matrices $D_{1}, D_{2}\dots$ [@rohlf1974methods].
+
+Because $G_{+}$ depends on the relative rankings of pairwise distances, this transformation enables a robust comparison of dissimilarity measures by the structure they impose on the data rather than by the exact values of the distances themselves.
+This allows us to evaluate distances at highly varying scales without imposing bias with regard to the expected magnitude of distances.
+In other words, discordance metrics such as $G_{+}$ offers a 'scale-agnostic' means to assess cluster fitness.
+
+**Problems with $G_{+}$**.
+
+1. $G_{+}$ is slow to calculate for large data (due to the number of pairwise comparisons of dissimilarities in $s$). 
+2. $G_{+}$ varies as a function of the proportion of observations in the predicted cluster labels (referred to as group or cluster balance), which is an undesirable property. For example, when simulating 'null' data (random Gaussian data with no mean difference between two groups) where we expect no differences between groups, the expected mean (and the interpretation) of the $G_{+}$ discordance metric in a 'null' analysis varies depending on the proportion of observations in each group. Specifically, as $\frac{N_{d}}{N_{d}-1} \to 1$, $G_{+}$ is a biased by a factor of $2\alpha(1-\alpha)$ where $\alpha$ is the proportion of $N_d$ distances that are within-cluster **(Figure 1)**.
+ 
+
+
+```{r motivating-figure, echo=FALSE, fig.cap='[**Figure 1**: The $G_{+}$ discordance metric is biased as function of the proportion of within-cluster distances, which is a function of the group balance.]', out.width = '80%', fig.align='left'}
+knitr::include_graphics("motivating_figure.jpeg")
+```
+
+In Figure 1 above, we randomly sampled $n$ = 1000 observations from a mixture distribution $b * X + (1-b) * Y$ with $b$ being the probability of an observation coming from $X \sim N(\mu_x, \sigma^2)$ and $1-b$ coming from $Y \sim N(\mu_y, \sigma^2)$ with **(Figure 1 A-B)** no mean difference ($\mu_x - \mu_y = 0$) (or a `null' setting), **(Figure 1 C-D)** a small mean difference ($\mu_x - \mu_y = 0.2$), and **(Figure 1 E-F)** a large mean difference ($\mu_x - \mu_y = 0.6$). We simulate data with **(Figure 1 A,C,E)** balanced groups ($b$ = 0.5) and **(Figure 1 B,D,F)** imbalanced groups ($b$ = 0.9). For each simulation, the top row contains observation colored by group ($X$ and $Y$) along the first two principal components (PCs) and the bottom row contains histograms of the within- ($D_{W}$) and between- ($D_{B}$) cluster distances (Euclidean) for the balanced and imbalanced groups. For each simulation, the bottom row includes $\alpha$ and the two discordance metrics $G_{+}$ and $H_{+}$. Generally, values close to zero represent more concordance, while a larger values represent more discordance.
+
+### $H_{+}$ discordance metric
+
+To ameliorate this effect, we propose $H_{+}$, which replaces the scaling factor  $N_{d}(N_{d}-1)/2$ in the denominator in $G_{+}$ with $\lvert D_{W}\rvert \lvert D_{B}\rvert = \alpha(1-\alpha)N_{d}^{2}$:
+
+$$ 
+H_{+}=\frac{s}{\lvert D_{W}\rvert \lvert D_{B}\rvert}
+$$
+
+where $\alpha \in (0,1)$ is the proportion of total distances $N_{d}$ that are within-cluster distances. In this way, $\lvert D_{W}\rvert=\alpha N_{d}$, and similarly, $\lvert D_{B}\rvert=(1-\alpha)N_{d}$.
+
+In other words, instead of scaling $s$ by the total number of ways to compare every distance to every other distance, we divide by the number of ways to compare within-cluster distances to between-cluster distances.
+
+
+**Interpreting $H_{+}$ with two sets $A$ and $B$**. 
+
+$H_{+}$ can be thought of as the product of two parameters $\gamma_{A},\gamma_{B}$, which lends itself to a simple interpretation for $H_{+}$: $\gamma_{A}\times100\%$ of $a \in A$ (or $d_{ij}\in D_{W}$) are strictly greater than $\gamma_{B}\times100\%$ of $b \in B$ (or $d_{kl}\in D_{B}$).
+
+We provide two equivalent algorithms for this estimation process, with the further benefit that our algorithms yields a range of reasonable values for $\gamma_{A},\gamma_{B}$. For further exploration of discordance, these estimators ($G_{+}$ and $H_{+}$), as well as their theoretical properties, please see Dyjack et al. (2022).
+
+
+# Installation
 
 At present, `fasthplus` is only available for installation via github using the `devtools` package.
 A `CRAN` distribution is in preparation and this section will be updated to reflect its eventual availability.
@@ -48,95 +160,10 @@ Once the package is installed, you can load the library
 library(fasthplus)
 ```
 
-This vignette serves as an introductory example on how to utilize the `fasthplus` package.
 
+# Using `hpe()` and `hpb()` functions
 
-# Introduction
-
-A standard analysis for high-dimensional data (such as genomic sequencing) is to cluster (i.e., label or partition) similar observations into discretegroups. Many clustering methods use Euclidean distance induced from normalized (count and/or log2-transformed) data. If there does not exist a gold-standard or ground-truth label for each observation, performance measures based on the tightness or consistency of the cluster are used to asses generated fitness. 
-
-One may also seek to assessing the performance of multiple dissimilarity measures (i.e., geometric versus statistical dissimilarity [@baker2021fast], however, the interpretation of these metrics can be problematic as different dissimilarity measures have different magnitudes and ranges of values that they span. To address this problem and enrich the body of cluster fitness methods, here we propose a new performance metric called $H_{+}$, which is an extension of the 'scale-agnostic' $G_{+}$ discordance metric. 
-
-## Discordance 
-
-Discordance can be described using two sets $A$ and $B$ by comparing their elements
-
-$$ s=\sum_{a\in A}\sum_{b\in B}1_{[a>b]} $$
-
-This notation can be can extended to the clustering problem for a given data set with $n$ observations. 
-
-In the context of the clustering (or identifying predicted class labels), **discordance** can be conceptualized as measure that assess how well a given predicted class (or cluster) label fits the observed data.
-A typical clustering algorithm utilizes a dissimilarity matrix $D(n\times n)$, with $N_{d}=\binom{n}{2}=n(n-1)/2$ unique pairs which would correspond to the upper diagonal entries of $D$.
-
-$$
-D=\begin{bmatrix}\begin{array}{cccc}
-d_{11} & d_{12} & \cdots & d_{1n}\\
- & d_{22} & \cdots & d_{2n}\\
- &  & \ddots & \vdots\\
- &  &  & d_{nn}
-\end{array}\end{bmatrix}
-$$
-
-When clustering $n$ observations, one can fix $D$ and place each of $n$ cells in one of $k$ clusters by optimizing some fitness criteria. Cluster fitness relates to how well a set of predicted cluster labels $L=[l_{1},\dots,l_{n}:l_{i}=1\dots,k]$ explain the observed data, for example, using the sum of within-cluster dissimilarities (dispersion).
-
-In this case, for fixed $L$, we can generate an adjacency matrix that tells us whether each observation has the same label (i.e., falls in the same cluster)
-
-$$
-A=\begin{bmatrix}\begin{array}{cccc}
-a_{11} & a_{12} & \cdots & a_{1n}\\
- & a_{22} & \cdots & a_{2n}\\
- &  & \ddots & \vdots\\
- &  &  & a_{nn}
-\end{array}\end{bmatrix}\hspace{1em}a_{ij}=\begin{array}{cc}
-1 & \mathrm{if}\enspace l_{i}=l_{j}\\
-0 & \mathrm{otherwise}
-\end{array}
-$$
-
-In terms of our notation, $s$ can be written as
-
-$$
-s=\sum_{i=2}^{n}\sum_{j<i}1(a_{ij}=1)\sum_{k=2}^{n}\sum_{l<k}1(a_{kl}=0)1(d_{ij}>d_{kl})
-$$
-
-## $G_{+}$ discordance metric
-
-Previous work includes the $G_{+}$ discordance metric [@williams1971comparison] [@rohlf1974methods] currently available in `R` in the `clusterCrit` package [@desgraupes2018package], where $s$ is scaled by $N_{d}(N_{d}-1)/2={N_{d} \choose 2}$, the total number of ways to compare each unique distance to every other.
-
-$$
-G_{+}=\frac{s}{N_{d}(N_{d}-1)/2}
-$$
-
-If $D$ is fixed, lower values of $G_{+}$ among many sets of labels $L_{1},L_{2}\dots$ indicate increased label fitness. If we instead fix $L$, we can also use discordance to assess the fitness of multiple dissimilarity matrices $D_{1},D_{2}\dots$ [@rohlf1974methods].
-
-Since each discordance value in $G_{+}$ is derived from the relative rankings of distances, this transformation allows us to compare distances by the structure they impose on the data rather than by the exact values of the distances.
-This allows us to evaluate distances at highly varying scales without imposing bias with regard to the expected magnitude of distances.
-In other words, discordance metrics such as $G_{+}$ offers a 'scale-agnostic' means to asses cluster fitness.
-
-## $H_{+}$ discordance metric
-
-One issue with $G_{+}$ is that it is for the parameter of interest (Dyjack et al. 2021). Specifically, as $\frac{N_{d}}{N_{d}-1} \to 1$, $G_{+}$ is a biased by a factor of $2\alpha(1-\alpha)$ where $\alpha$ is the proportion of $N_d$ distances that are within-cluster. 
-
-```{r motivating-figure, echo=FALSE, fig.cap='[$G_{+}$ is biased and a function of the proportion of within-cluster distances while $H_{+}$ is unbiased]', out.width = '80%', fig.align='center'}
-knitr::include_graphics("motivating_figure.jpeg")
-```
-
-
-Hence, if we parameterize the portion of $N_{d}$ that are $d_{ij}\in D_{W}$ such that $\lvert D_{W} \rvert = \alpha N_{d}$, $\alpha \in(0,1)$, and similarly, $\lvert D_{B} \rvert = (1-\alpha) N_{d}$ (and $\lvert D_{W}\rvert+\lvert D_{B}\rvert=N_{d}$), then we can replace the denominator in $G_{+}$ ($N_{d}(N_{d}-1)/2$) with $\lvert D_{W}\rvert \lvert D_{B}\rvert$ in our new discordance metric: 
-
-$$ 
-H_{+}=\frac{s}{\lvert D_{W}\rvert \lvert D_{B}\rvert}
-$$
-
-In other words, instead of scaling $s$ by the total number of ways to compare every distance to every other distance, we divide by the number of ways to compare within-cluster distances to between-cluster distances, which we show is no longer biased by $\alpha$ [Dyjack et al. (2021)]
-
-### Interpreting $H_{+}$ with two sets $A$ and $B$
-
-$H_{+}$ can be thought of as the product of two parameters $\gamma_{A},\gamma_{B}$, which lends itself to a simple interpretation for $H_{+}$: $\gamma_{A}\times100\%$ of $a \in A$ (or $d_{ij}\in D_{W}$) are strictly greater than $\gamma_{B}\times100\%$ of $b \in B$ (or $d_{kl}\in D_{B}$).
-
-We provide two equivalent algorithms for this estimation process, with the further benefit that our algorithms yields a range of reasonable values for $\gamma_{A},\gamma_{B}$. For further exploration of discordance, these estimators ($G_{+}$ and $H_{+}$), as well as their theoretical properties, please see Dyjack et al. (2022).
-
-# $H_{+}$ estimation in `fasthplus` with `hpe()` and `hpb()`
+## Broad overview
 
 The primary workhorse functions in `fasthplus` are the `hpe()` (H Plus Estimator) and `hpb()` (H Plus Bootstrap) functions. In general, the computationally expensive aspects of explicit $H_{+}$ are calculating the dissimilarity matrix $D$ and the number of discordant pairs $s$ (Dyjack et al. 2022). On a modest machine, calculating and storing $D$ becomes cumbersome at around 10000 observations with 1000 features.
 
@@ -144,9 +171,16 @@ The primary workhorse functions in `fasthplus` are the `hpe()` (H Plus Estimator
 knitr::include_graphics("performance_plot.jpeg")
 ```
 
-Both `hpe()` and `hpb()` are estimation procedures for $H_{+}$ which circumnavigate the most costly step: explicit calculation of $s$ by comparing each within-cluster distance $D_{W}$ to every between-cluster distance $D_{B}$. The two functions differ in their treatment of the dissimilarity matrix $D$, yielding distinct computational and theoretical advantages for each. The primary difference is that `hpe()` requires calculation of the full $D$ matrix as either an argument or an internal routine. The more explicit `hpe()` gives a numerical bound for the accuracy as a function of $p$ and further benefits from facility to estimate $\gamma_{W}$ and $\gamma_{B}$. The more efficient `hpb()` calculates sub-matrices of $D$ per iterate and convergence is primarily due to large sample-size behaviors. If calculation of $D$ is practical or fine control of numerical accuracy of the estimate is required, we recommend the utilization of the `hpe()` function. Otherwise, the scalability of `hpb()` makes it the more practical solution.
+Both `hpe()` and `hpb()` are estimation procedures for $H_{+}$ which circumnavigate the most costly step: explicit calculation of $s$ by comparing each within-cluster distance $D_{W}$ to every between-cluster distance $D_{B}$. The two functions differ in their treatment of the dissimilarity matrix $D$, yielding distinct computational and theoretical advantages for each. 
 
-# Using `hpe()` in `fasthplus`
+The **primary difference** is that `hpe()` requires calculation of the full $D$ matrix as either an argument or an internal routine. 
+
+- The more explicit `hpe()` gives a numerical bound for the accuracy as a function of $p$ and further benefits from facility to estimate $\gamma_{W}$ and $\gamma_{B}$. 
+- The more efficient `hpb()` calculates sub-matrices of $D$ per iterate and convergence is primarily due to large sample-size behaviors. 
+
+If calculation of $D$ is practical or fine control of numerical accuracy of the estimate is required, we recommend the utilization of the `hpe()` function. Otherwise, the scalability of `hpb()` makes it the more practical solution.
+
+## Using `hpe()`
 
 As input, `hpe()` can estimate $H_{+}$ using **either**:
 
@@ -155,17 +189,17 @@ As input, `hpe()` can estimate $H_{+}$ using **either**:
 
 The `hpe()` function returns a numeric value for $H_{+}$ given $A,B$ or $D,L$, or it returns a list with the additional parameters (alpha and gamma) specified. In comparison to similar cluster-fitness packages (`clusterCrit`), which induce Euclidean distance from the observations, `fasthplus` is designed to handle an arbitrary dissimilarity matrix.
 
-## Additional arguments
+### Additional arguments
 
 In addition to either $A,B$ or $D,L$, the user may also provide `hpe()` with four additional arguments: `p`, `alg`, `alpha`, `gammas`
 
-### `p`
+#### `p`
 
 An `integer` value that specifies the number of percentiles to calculate for each set $A,B$.
 `p` is used to specify the desired accuracy of the $H_{+}$ estimate, where the theoretical accuracy is guaranteed within $\pm \frac{1}{p-1}$.
 The default value `p=101`, that is, an accuracy of 0.01. 
 
-### `alg`
+#### `alg`
 
 A character string referring to two algorithms used to estimate $H_{+}$.
 For most values of $p$ the algorithms have comparable performance.
@@ -175,15 +209,15 @@ For most values of $p$ the algorithms have comparable performance.
 
 In practice, the two algorithms have similar performance for most values of $p$. However, as Algorithm 2 performs strictly less calculations than Algorithm 1, we suggest Algorithm 2 for any $p > 101$.
 
-### `alpha`
+#### `alpha`
 
 A logical which indicates whether `hpe()` should include the value for $\alpha$, the portion of dissimilarities that are within-cluster.
 
-### `gammas`
+#### `gammas`
 
 A logical which indicates whether `hpe()` should include estimates for $\gamma_{W}$ and $\gamma_{B}$, that is, approximately what percent of $D_{W}$ are strictly greater than are greater than $D_{B}$.
 
-# Using `hpb()` in `fasthplus`
+## Using `hpb()`
 
 The `fasthplus` package also includes a bootstrap implementation `hpb()` for estimating $H_{+}$.
 
@@ -193,15 +227,15 @@ The `fasthplus` package also includes a bootstrap implementation `hpb()` for est
 
 The `hpe()` function returns a numeric value for $H_{+}$ given $D,L$.
 
-## Additional arguments
+### Additional arguments
 
 In addition $D,L$, the user provides `hpe()` with two additional arguments: `r` and `t`
 
-### `r`
+#### `r`
 
 An `integer` value that specifies the number of bootstrap replicates to compute, default is 30.
 
-### `t`
+#### `t`
 
 An `integer` which specifies the number of samples within each bootstrap, no default value.
 Should be around 1-5% of the number of observations in the dataset.
