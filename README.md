@@ -49,16 +49,16 @@ To run the `hpe()` and `hpb()` with `D` (dissimilarity or data respectively) and
 # Two sets
 a <- sapply(1:100, function(i) rnorm(n=50,mean=0.0,sd=1))
 b <- sapply(1:100, function(i) rnorm(n=50,mean=0.0,sd=1))
-c <- t(cbind(a,b))
+x <- t(cbind(a,b))
 
 # Create a set of labels
 l <- c(rep(0,100),rep(1,100))
 
 #hpb estimate
-hpb(D=c,L=l,t=10,r=10)
+hpb(D=x,L=l,t=10,r=10)
 
 # Calculate dissimilarity matrix
-d <- dist(t(c))
+d <- dist(x)
 #hpe estimate
 hpe(D=d,L=l,p=251)
 ```
