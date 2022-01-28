@@ -4,7 +4,7 @@
 \alias{hpe}
 \title{H+ discordance metric}
 \usage{
-hpe(A, B, D, L, p = 101, alg = "brute_force", alphas = F, gammas = F)
+hpe(A, B, D, L, p = 101, alg = "brute_force", alpha = F, gammas = F)
 }
 \arguments{
 \item{A}{numeric vector containing a set of length n}
@@ -19,7 +19,7 @@ hpe(A, B, D, L, p = 101, alg = "brute_force", alphas = F, gammas = F)
 
 \item{alg}{character string ("brute_force" or "grid_search") representing the choice of algorithm used to estimate H+}
 
-\item{alphas}{logical indicator to return alpha values that parameterize balance of within/between cluster distances}
+\item{alpha}{logical indicator to return alpha values that parameterize balance of within/between cluster distances}
 
 \item{gammas}{logical indicator to return estimate for gamma values that parameterize what \%Dw is greater than a second \%Db}
 }

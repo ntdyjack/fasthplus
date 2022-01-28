@@ -12,7 +12,7 @@
 #' @param L numeric or character vector of length n
 #' @param p integer representing the number of percentiles
 #' @param alg character string ("brute_force" or "grid_search") representing the choice of algorithm used to estimate H+
-#' @param alphas logical indicator to return alpha values that parameterize balance of within/between cluster distances
+#' @param alpha logical indicator to return alpha values that parameterize balance of within/between cluster distances
 #' @param gammas logical indicator to return estimate for gamma values that parameterize what %Dw is greater than a second %Db
 #' 
 #' @return h is the estimated H+ value.

@@ -68,9 +68,7 @@ Discordance can be described using two sets $A$ and $B$ by comparing their eleme
 
 $$ s=\sum_{a\in A}\sum_{b\in B}1_{[a>b]} $$
 
-This notation can be can extended to the clustering problem for a given data set with $n$ observations. 
-
-In the context of the clustering (or identifying predicted class labels), **discordance** can be conceptualized as measure that assess how well a given predicted class (or cluster) label fits the observed data.
+This notation can be can extended to the clustering problem for a given data set with $n$ observations. In the context of the clustering (or identifying predicted class labels), **discordance** can be conceptualized as measure that assess how well a given predicted class (or cluster) label fits the observed data.
 A typical clustering algorithm utilizes a dissimilarity matrix $D(n\times n)$, with $N_{d}=\binom{n}{2}=n(n-1)/2$ unique pairs which would correspond to the upper diagonal entries of $D$.
 
 $$
@@ -82,9 +80,7 @@ d_{11} & d_{12} & \cdots & d_{1n}\\
 \end{array}\end{bmatrix}
 $$
 
-When clustering $n$ observations, one can fix $D$ and place each of $n$ cells in one of $k$ clusters by optimizing some fitness criteria. Cluster fitness relates to how well a set of predicted cluster labels $L=[l_{1},\dots,l_{n}:l_{i}=1\dots,k]$ explain the observed data, for example, using the sum of within-cluster dissimilarities.
-
-In this case, for fixed $L$, we can generate an adjacency matrix that tells us whether each observation has the same label (i.e., falls in the same cluster)
+When clustering $n$ observations, one can fix $D$ and place each of $n$ cells in one of $k$ clusters by optimizing some fitness criteria. Cluster fitness relates to how well a set of predicted cluster labels $L=[l_{1},\dots,l_{n}:l_{i}=1\dots,k]$ explain the observed data, for example, using the sum of within-cluster dissimilarities. In this case, for fixed $L$, we can generate an adjacency matrix that tells us whether each observation has the same label (i.e., falls in the same cluster)
 
 $$
 A=\begin{bmatrix}\begin{array}{cccc}
@@ -112,9 +108,9 @@ $$
 G_{+}=\frac{s}{N_{d}(N_{d}-1)/2}
 $$
 
-Generally, $G_{+}$ close to zero represents two concordant sets, while a larger $G_{+}$ is more dis(con)cordant.
+Generally, $G_{+}$ close to zero represents two concordant sets, while a larger $G_{+}$ is more discordant.
 
-**Applications of $G_{+}$**. The discordance metric $G_{+}$ can be used to quantify the cluster fitness for given a dissimilarity matrix $D$ and predicted cluster label $L$.
+**Applications of $G_{+}$** The discordance metric $G_{+}$ can be used to quantify the cluster fitness for given a dissimilarity matrix $D$ and predicted cluster label $L$.
 For example, if $D$ is fixed, lower values of $G_{+}$ among many sets of labels $L_{1}, L_{2} \dots$ indicate increased cluster fitness \citep{rand1971objective, williams1971comparison} or better performance.
 If we instead fix $L$, we can also use $G_{+}$ to assess the fitness of multiple dissimilarity matrices $D_{1}, D_{2}\dots$ [@rohlf1974methods].
 
@@ -122,7 +118,7 @@ Because $G_{+}$ depends on the relative rankings of pairwise distances, this tra
 This allows us to evaluate distances at highly varying scales without imposing bias with regard to the expected magnitude of distances.
 In other words, discordance metrics such as $G_{+}$ offers a 'scale-agnostic' means to assess cluster fitness.
 
-**Problems with $G_{+}$**.
+**Problems with $G_{+}$**
 
 1. $G_{+}$ is slow to calculate for large data (due to the number of pairwise comparisons of dissimilarities in $s$). 
 2. $G_{+}$ varies as a function of the proportion of observations in the predicted cluster labels (referred to as group or cluster balance), which is an undesirable property. For example, when simulating 'null' data (random Gaussian data with no mean difference between two groups) where we expect no differences between groups, the expected mean (and the interpretation) of the $G_{+}$ discordance metric in a 'null' analysis varies depending on the proportion of observations in each group. Specifically, as $\frac{N_{d}}{N_{d}-1} \to 1$, $G_{+}$ is a biased by a factor of $2\alpha(1-\alpha)$ where $\alpha$ is the proportion of $N_d$ distances that are within-cluster **(Figure 1)**.
@@ -143,9 +139,7 @@ $$
 H_{+}=\frac{s}{\lvert D_{W}\rvert \lvert D_{B}\rvert}
 $$
 
-where $\alpha \in (0,1)$ is the proportion of total distances $N_{d}$ that are within-cluster distances. In this way, $\lvert D_{W}\rvert=\alpha N_{d}$, and similarly, $\lvert D_{B}\rvert=(1-\alpha)N_{d}$.
-
-In other words, instead of scaling $s$ by the total number of ways to compare every distance to every other distance, we divide by the number of ways to compare within-cluster distances to between-cluster distances.
+where $\alpha \in (0,1)$ is the proportion of total distances $N_{d}$ that are within-cluster distances. In this way, $\lvert D_{W}\rvert=\alpha N_{d}$, and similarly, $\lvert D_{B}\rvert=(1-\alpha)N_{d}$. In other words, instead of scaling $s$ by the total number of ways to compare every distance to every other distance, we divide by the number of ways to compare within-cluster distances to between-cluster distances.
 
 
 **Interpreting $H_{+}$ with two sets $A$ and $B$**. 
@@ -243,9 +237,7 @@ To demonstrate `hpe()` and `hpb()`, we consider several simulated data sets:
 
 ## $A,B$ formulation with `hpe()`
 
-This formulation seeks to quantify the answer a simple question: for two sets $A,B$ how often can we expect that $a>b,a \in A,b \in B$ ?
-
-We simulate $A$ and $B$ as $n=10000$ draws from a univariate normal distributions with unit variance and slightly different means ($\mu_{A}=0.5,\mu_{B}=-0.5$). 
+This formulation seeks to quantify the answer a simple question: for two sets $A,B$ how often can we expect that $a>b,a \in A,b \in B$ ? We simulate $A$ and $B$ as $n=10000$ draws from a univariate normal distributions with unit variance and slightly different means ($\mu_{A}=0.5,\mu_{B}=-0.5$). 
 
 ```{r, fig.width=6,fig.height=4}
 set.seed(1234)
@@ -270,12 +262,7 @@ hpe(A=a,B=b,p=1001) # A, B formulation
 ## $D,L$ formulation with `hpe()`
 
 We can apply $A,B$ formulation to a dissimilarity matrix $D$ and set of cluster labels $L$.
-$L$ can be used to generate a binary adjacency matrix that tells us (for every unique pair of observations) whether two observations belong to the same group.
-This adjacency matrix (more specifically, its upper-triangular elements) can then be used to classify every unique dissimilarity $d\in D$ as corresponding to a pair within the same cluster or not.
-
-We can now define $A$ as the unique within-cluster distnaces ($D_{W}$), and $B$ as the unique between-cluster distances ($D_{B}$), and the problem as been reduced to the $A,B$ formulation.
-
-We simulate two sets of $n=1000$ observations (Cluster 1 and 2) with each observation corresponding to multiple ($m=100$) draws from the same distributions describe in the previous sections.
+$L$ can be used to generate a binary adjacency matrix that tells us (for every unique pair of observations) whether two observations belong to the same group. This adjacency matrix (more specifically, its upper-triangular elements) can then be used to classify every unique dissimilarity $d\in D$ as corresponding to a pair within the same cluster or not. We can now define $A$ as the unique within-cluster distnaces ($D_{W}$), and $B$ as the unique between-cluster distances ($D_{B}$), and the problem as been reduced to the $A,B$ formulation. We simulate two sets of $n=1000$ observations (Cluster 1 and 2) with each observation corresponding to multiple ($m=100$) draws from the same distributions describe in the previous sections.
 
 ```{r,fig.width=6,fig.height=4}
 n <- 1000
