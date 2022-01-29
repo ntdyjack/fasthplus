@@ -144,9 +144,7 @@ where $\alpha \in (0,1)$ is the proportion of total distances $N_{d}$ that are w
 
 **Interpreting $H_{+}$ with two sets $A$ and $B$**. 
 
-$H_{+}$ can be thought of as the product of two parameters $\gamma_{A},\gamma_{B}$, which lends itself to a simple interpretation for $H_{+}$: $\gamma_{A}\times100\%$ of $a \in A$ (or $d_{ij}\in D_{W}$) are strictly greater than $\gamma_{B}\times100\%$ of $b \in B$ (or $d_{kl}\in D_{B}$).
-
-We provide two equivalent algorithms for this estimation process, with the further benefit that our algorithms yields a range of reasonable values for $\gamma_{A},\gamma_{B}$. For further exploration of discordance, these estimators ($G_{+}$ and $H_{+}$), as well as their theoretical properties, please see Dyjack et al. (2022).
+$H_{+}$ can be thought of as the product of two parameters $\gamma_{A},\gamma_{B}$, which lends itself to a simple interpretation for $H_{+}$: $\gamma_{A}\times100\%$ of $a \in A$ (or $d_{ij}\in D_{W}$) are strictly greater than $\gamma_{B}\times100\%$ of $b \in B$ (or $d_{kl}\in D_{B}$). We provide two equivalent algorithms for this estimation process, with the further benefit that our algorithms yields a range of reasonable values for $\gamma_{A},\gamma_{B}$. For further exploration of discordance, these estimators ($G_{+}$ and $H_{+}$), as well as their theoretical properties, please see Dyjack et al. (2022).
 
 ### Approximating $H_{+}$ 
 
@@ -180,17 +178,15 @@ As input, `hpe()` can estimate $H_{+}$ using **either**:
 1. Two arbitrary vectors: $A = \{a_1, \ldots \}$ and $B = \{b_1, \ldots \}$
 2. A dissimilarity matrix $D$ of dimension $n \times n$ and set of labels $L$  of length $n$
 
-The `hpe()` function returns a numeric value for $H_{+}$ given $A,B$ or $D,L$, or it returns a list with the additional parameters (alpha and gamma) specified. In comparison to similar cluster-fitness packages (`clusterCrit`), which induce Euclidean distance from the observations, `fasthplus` is designed to handle an arbitrary dissimilarity matrix.
+The `hpe()` function returns a numeric value for $H_{+}$ given $A,B$ or $D,L$, or it returns a list with the additional parameters (`alpha` and `gammas`) specified. In comparison to similar cluster-fitness packages (`clusterCrit`), which induce Euclidean distance from the observations, `fasthplus` is designed to handle an arbitrary dissimilarity matrix.
 
 ## Additional arguments
 
-In addition to either $A,B$ or $D,L$, the user may also provide `hpe()` with four additional arguments: `p`, `alg`, `alpha`, `gammas`. We describe these in greater detail below.
+In addition to either $A,B$ or $D,L$, the user may also provide `hpe()` with four additional arguments: `p`, `alg`, `alpha`, `gammas`.
 
 ### `p`
 
-An `integer` value that specifies the number of percentiles to calculate for each set $A,B$.
-`p` is used to specify the desired accuracy of the $H_{+}$ estimate, where the theoretical accuracy is guaranteed within $\pm \frac{1}{p-1}$.
-The default value `p=101`, that is, an accuracy of 0.01. 
+An `integer` value that specifies the number of percentiles to calculate for each set $A,B$. In Dyjack et al. (2022), we derive a numerical bound for the accuracy of this estimator as a function of p, the number of percentiles taken from the two sets of interest. The user can specify p, and hpe() guarantees accuracy within ±1p−1 of the true H+. The default value `p=101`, that is, an accuracy of 0.01. 
 
 ### `alg`
 
@@ -198,7 +194,7 @@ A character string referring to two algorithms used to estimate $H_{+}$.
 For most values of $p$ the algorithms have comparable performance.
 
 - `alg = "brute_force"` (default): this is a 'brute-force' estimation that performs best (in `R`) for smaller values of $p$.
-- `alg = "grid_search"`: this is a percentile-based ($p$), grid search solution for the same value that dramatically reduces the number of comparisons compared to the number of calculations than Algorithm 1. In Dyjack et al. (2022), we derive a numerical bound for the accuracy of this estimator as a function of $p$, the number of percentiles taken from the two sets of interest. The user can specify $p$, and `hpe()` guarantees accuracy within $\pm \frac{1}{p-1}$ of the true $H_{+}$.
+- `alg = "grid_search"`: this is a percentile-based ($p$), grid search solution for the same value that dramatically reduces the number of comparisons compared to the number of calculations than Algorithm 1. 
 
 In practice, the two algorithms have similar performance for most values of $p$. However, as Algorithm 2 performs strictly less calculations than Algorithm 1, we suggest Algorithm 2 for any $p > 101$.
 

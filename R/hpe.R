@@ -132,11 +132,11 @@ hpe <- function(A, B, D, L, p = 101, alg = "brute_force",alpha=F,gammas=F) {
     #ab <- bn / (an+bn)
   } 
 
-  if (alphas & gammas){
+  if (alpha & gammas){
     fin <- list(h=he, gammas=c(gw =gAr, gb = gB), alpha=aw)
-  } else if (alphas & !gammas) {
+  } else if (alpha & !gammas) {
     fin <- list(h=he, alpha=aw)
-  } else if (!alphas & gammas) {
+  } else if (!alpha & gammas) {
     fin <- list(h=he, gammas=c(gw =gAr, gb = gB))
   } 
 
