@@ -1,6 +1,6 @@
 Package: fasthplus
-Title: Fast diconcordance estimation using percentiles
-Version: 0.0.0.9000
+Title: Fast Label-Dissimilarity Discordance Estimation with H+
+Version: 1.0
 Authors@R: c(
     person(given = "Nathan",
            family = "Dyjack",
@@ -12,7 +12,7 @@ Authors@R: c(
            role = c("aut", "ctb"), 
 		       email = "shicks19@jhu.edu", 
 		       comment = c(ORCID = "0000-0002-7858-0231")))
-Description: This package contains a generalized disconcordance measure called H+ that is extended from G+ proposed by Rohlf in 1975. 
+Description: Estimation procedures for assesing fitness of observation labels (i.e., clusters or partitions) given observation dissimilarities, or vice versa. The estimated parameter of interest is modified from G+ (Williams 1971), so we call it H+.
 License: CC BY 4.0
 Encoding: UTF-8
 LazyData: true
