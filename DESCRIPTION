@@ -12,7 +12,7 @@ Authors@R: c(
            role = c("aut", "ctb"), 
 		       email = "shicks19@jhu.edu", 
 		       comment = c(ORCID = "0000-0002-7858-0231")))
-Description: Estimation procedures for assesing fitness of observation labels (i.e., clusters or partitions) given observation dissimilarities, or vice versa. The estimated parameter of interest is modified from G+ (Williams 1971), so we call it H+.
+Description: Estimation procedures for assessing fitness of observation labels (i.e., clusters or partitions) given observation dissimilarities, or vice versa. The estimated parameter of interest is modified from G+ (Williams 1971), so we call it H+.
 License: CC BY 4.0
 Encoding: UTF-8
 LazyData: true
