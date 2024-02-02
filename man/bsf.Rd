@@ -11,9 +11,9 @@ bsf(d, l, t, q)
 
 \item{l}{(identities, nx1)}
 
-\item{q}{(list, pre-computed by hpb)}
+\item{t}{(numeric, 1x1)}
 
-\item{r}{(numeric, 1x1)}
+\item{q}{(list, pre-computed by hpb)}
 }
 \value{
 One iteration of H+ bootstrap estimate

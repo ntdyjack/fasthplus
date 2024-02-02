@@ -7,7 +7,7 @@
 #'
 #' @param d (data, nxm)
 #' @param l (identities, nx1)
-#' @param r (numeric, 1x1)
+#' @param t (numeric, 1x1)
 #' @param q (list, pre-computed by hpb) 
 #' @return One iteration of H+ bootstrap estimate
 #' @importFrom stats dist
